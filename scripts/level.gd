@@ -69,9 +69,9 @@ func _add_player(id: int, player_info : Dictionary):
 	var model_name = "brawler"
 
 	var known = ["kyle","eric","donald","kristen","rochelle","vickie"]
-	for name in known:
-		if nick_lower.find(name) != -1:
-			model_name = name
+	for character_name in known:
+		if nick_lower.find(character_name) != -1:
+			model_name = character_name
 			break
 
 	if model_name == "brawler":
