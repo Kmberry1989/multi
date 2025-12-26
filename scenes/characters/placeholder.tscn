@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3]
+
+[node name="PlaceholderCharacter" type="Node3D"]
+transform = Transform3D( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 )
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="PlaceholderCharacter"]
+mesh = BoxMesh {
+    size = Vector3(0.6, 1.8, 0.4)
+}

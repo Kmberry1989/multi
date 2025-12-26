@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=4]
+
+[ext_resource path="res://assets/characters/player/ERIC/eric.glb" type="PackedScene" id=1]
+
+[node name="Eric" type="Node3D"]
+script = null
+
+[node name="CharacterModel" parent="Eric" instance=ExtResource(1)]
