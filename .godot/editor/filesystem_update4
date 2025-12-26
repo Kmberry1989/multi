@@ -1,6 +1,0 @@
-res://scripts/character_model_helper.gd
-res://scripts/character_switcher.gd
-res://scenes/level/player.tscn
-res://scripts/animation_map.gd
-res://scripts/main_menu_ui.gd
-res://scripts/player.gd

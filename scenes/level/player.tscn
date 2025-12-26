@@ -4812,10 +4812,6 @@ bones/1/enabled = true
 bones/1/position = Vector3(-3.15279e-15, 0.264173, 5.80784e-09)
 bones/1/rotation = Quaternion(0.0294489, -1.52182e-14, 7.02117e-09, 0.999566)
 bones/1/scale = Vector3(1, 1, 1)
-[node name="SpringArmOffset" type="Node3D" parent="." node_paths=PackedStringArray("_spring_arm")]
-transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 0, 0, 0)
-script = ExtResource("4_ygggd")
-_spring_arm = NodePath("SpringArm3D")
 bones/2/name = "spine.002"
 bones/2/parent = 1
 bones/2/rest = Transform3D(1, 2.54997e-08, -4.7547e-07, 2.54996e-08, 0.994264, 0.106953, 4.7547e-07, -0.106953, 0.994264, -3.69508e-15, 0.169598, 7.45058e-09)

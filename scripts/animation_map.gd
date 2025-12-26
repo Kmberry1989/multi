@@ -1,4 +1,4 @@
-[tool]
+@tool
 extends Node
 
 # Mapping from canonical animation keys used by gameplay -> expected AnimationLibrary basenames
