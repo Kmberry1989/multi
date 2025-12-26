@@ -2,7 +2,6 @@
 
 [ext_resource type="Script" uid="uid://c2si8gkbnde0c" path="res://scripts/player.gd" id="1_tdh26"]
 [ext_resource type="Texture2D" uid="uid://bdg48m6l86q8i" path="res://assets/characters/player/3DGodotRobot_GodotPalette.png" id="1_w11jc"]
-[ext_resource type="Script" uid="uid://v8j54rbc0ik" path="res://scripts/3d_godot_robot.gd" id="2_mexc5"]
 [ext_resource type="Texture2D" uid="uid://cw6pxwst2gh85" path="res://assets/characters/player/GodotRobotPaletteSwap/GodotYellowPalette.png" id="3_l3dv8"]
 [ext_resource type="Texture2D" uid="uid://bbid6mowxhd5b" path="res://assets/characters/player/GodotRobotPaletteSwap/GodotGreenPalette.png" id="4_74ree"]
 [ext_resource type="Texture2D" uid="uid://fpmmv2oxjcdv" path="res://assets/characters/player/GodotRobotPaletteSwap/GodotPalette.png" id="4_max2b"]
@@ -4770,21 +4769,15 @@ _data = {
 properties/0/path = NodePath(".:position")
 properties/0/spawn = true
 properties/0/replication_mode = 1
-properties/1/path = NodePath("3DGodotRobot/AnimationPlayer:current_animation")
+properties/1/path = NodePath("PlayerNick/Nickname:text")
 properties/1/spawn = true
 properties/1/replication_mode = 1
-properties/2/path = NodePath("PlayerNick/Nickname:text")
-properties/2/spawn = true
-properties/2/replication_mode = 1
-properties/3/path = NodePath("3DGodotRobot:rotation")
-properties/3/spawn = true
-properties/3/replication_mode = 1
 
 [node name="Player" type="CharacterBody3D" node_paths=PackedStringArray("_body", "_spring_arm_offset")]
 transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 0, 0, 0)
 collision_mask = 3
 script = ExtResource("1_tdh26")
-_body = NodePath("3DGodotRobot")
+_body = NodePath("CharacterModel")
 _spring_arm_offset = NodePath("SpringArmOffset")
 blue_texture = ExtResource("4_max2b")
 yellow_texture = ExtResource("3_l3dv8")
@@ -4819,6 +4812,10 @@ bones/1/enabled = true
 bones/1/position = Vector3(-3.15279e-15, 0.264173, 5.80784e-09)
 bones/1/rotation = Quaternion(0.0294489, -1.52182e-14, 7.02117e-09, 0.999566)
 bones/1/scale = Vector3(1, 1, 1)
+[node name="SpringArmOffset" type="Node3D" parent="." node_paths=PackedStringArray("_spring_arm")]
+transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 0, 0, 0)
+script = ExtResource("4_ygggd")
+_spring_arm = NodePath("SpringArm3D")
 bones/2/name = "spine.002"
 bones/2/parent = 1
 bones/2/rest = Transform3D(1, 2.54997e-08, -4.7547e-07, 2.54996e-08, 0.994264, 0.106953, 4.7547e-07, -0.106953, 0.994264, -3.69508e-15, 0.169598, 7.45058e-09)

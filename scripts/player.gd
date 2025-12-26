@@ -30,8 +30,9 @@ func _find_model_meshes():
 	var model_root: Node = null
 	if has_node("CharacterModel"):
 		model_root = get_node("CharacterModel")
-	elif has_node("3DGodotRobot"):
-		model_root = get_node("3DGodotRobot")
+
+	# NOTE: removed fallback to embedded 3DGodotRobot to avoid overlapping visuals.
+	# Robot nodes are removed at runtime in _ready() instead.
 
 	if model_root:
 		if model_root.has_node("RobotArmature/Skeleton3D/Bottom"):
@@ -66,6 +67,12 @@ func _enter_tree():
 	$SpringArmOffset/SpringArm3D/Camera3D.current = is_multiplayer_authority()
 
 func _ready():
+	# Remove embedded robot visuals if present to prevent overlap with CharacterModel
+	if has_node("3DGodotRobot"):
+		var robot_node = get_node("3DGodotRobot")
+		if robot_node and robot_node.is_inside_tree():
+			robot_node.queue_free()
+
 	_find_model_meshes()
 	var is_local_player = is_multiplayer_authority()
 	var local_client_id = multiplayer.get_unique_id()

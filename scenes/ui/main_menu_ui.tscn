@@ -79,47 +79,6 @@ placeholder_text = "YourNick"
 max_length = 20
 expand_to_text_length = true
 
-[node name="Option2" type="HBoxContainer" parent="MainContainer/MainMenu"]
-layout_mode = 2
-size_flags_vertical = 4
-alignment = 1
-
-[node name="Label" type="Label" parent="MainContainer/MainMenu/Option2"]
-layout_mode = 2
-size_flags_horizontal = 4
-theme_override_fonts/font = ExtResource("1_font")
-theme_override_font_sizes/font_size = 35
-text = "Player Skin : "
-
-[node name="SkinInput" type="LineEdit" parent="MainContainer/MainMenu/Option2"]
-layout_mode = 2
-size_flags_horizontal = 4
-theme_override_fonts/font = ExtResource("1_font")
-theme_override_font_sizes/font_size = 35
-placeholder_text = "blue"
-alignment = 1
-expand_to_text_length = true
-
-[node name="Option3" type="HBoxContainer" parent="MainContainer/MainMenu"]
-layout_mode = 2
-size_flags_horizontal = 4
-size_flags_vertical = 4
-alignment = 1
-
-[node name="Label" type="Label" parent="MainContainer/MainMenu/Option3"]
-layout_mode = 2
-size_flags_horizontal = 4
-theme_override_fonts/font = ExtResource("1_font")
-theme_override_font_sizes/font_size = 35
-text = "IP Address : "
-
-[node name="AddressInput" type="LineEdit" parent="MainContainer/MainMenu/Option3"]
-layout_mode = 2
-theme_override_fonts/font = ExtResource("1_font")
-theme_override_font_sizes/font_size = 35
-placeholder_text = "127.0.0.1"
-alignment = 1
-expand_to_text_length = true
 
 [node name="HSeparator2" type="HSeparator" parent="MainContainer/MainMenu"]
 layout_mode = 2
