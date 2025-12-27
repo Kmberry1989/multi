@@ -1,5 +1,5 @@
 63f7b34db8d8cdea90c76aacccf841ec
-::res://::1766801891
+::res://::1766805108
 CONTRIBUTING.md::TextFile::-1::1766780441::0::1::::<><><>0<>0<><>::
 icon.png::CompressedTexture2D::7745181525272711891::1766780441::1766780441::1::::<><><>0<>0<>896be222f4526152412fc7150ec81337<>res://.godot/imported/icon.png-487276ed1e3a0c39cad0279d744ee560.ctex::
 README.md::TextFile::-1::1766780441::0::1::::<><><>0<>0<><>::
@@ -266,8 +266,8 @@ maia.tscn::PackedScene::-1::1766780441::0::1::::<><><>0<>0<><>::res://assets/cha
 placeholder.tscn::PackedScene::-1::1766780441::0::1::::<><><>0<>0<><>::
 rochelle.tscn::PackedScene::-1::1766780441::0::1::::<><><>0<>0<><>::res://assets/characters/player/ROCHELLE/rochelle.glb
 vickie.tscn::PackedScene::-1::1766780441::0::1::::<><><>0<>0<><>::res://assets/characters/player/VICKIE/vickie.glb
-::res://scenes/level/::1766780441
-level.tscn::PackedScene::8575440581694956823::1766780441::0::1::::<><><>0<>0<><>::uid://d0dgljwwl463n::::res://scripts/level.gd<>uid://cffjduipbb3s5::::res://scenes/level/player.tscn<>uid://bclq8vh1x2goy::::res://scenes/ui/inventory_ui.tscn<>uid://ccencq0lcd3ph::::res://scenes/ui/multiplayer_chat_ui.tscn<>uid://bx7mq8t8hjn7q::::res://scenes/ui/main_menu_ui.tscn
+::res://scenes/level/::1766804798
+level.tscn::PackedScene::8575440581694956823::1766804798::0::1::::<><><>0<>0<><>::uid://d0dgljwwl463n::::res://scripts/level.gd<>uid://cffjduipbb3s5::::res://scenes/level/player.tscn<>uid://bclq8vh1x2goy::::res://scenes/ui/inventory_ui.tscn<>uid://ccencq0lcd3ph::::res://scenes/ui/multiplayer_chat_ui.tscn<>uid://bx7mq8t8hjn7q::::res://scenes/ui/main_menu_ui.tscn
 player.tscn::PackedScene::5134660348171653994::1766780441::0::1::::<><><>0<>0<><>::uid://c2si8gkbnde0c::::res://scripts/player.gd<>uid://bdg48m6l86q8i::::res://assets/characters/player/3DGodotRobot_GodotPalette.png<>uid://cw6pxwst2gh85::::res://assets/characters/player/GodotRobotPaletteSwap/GodotYellowPalette.png<>uid://bbid6mowxhd5b::::res://assets/characters/player/GodotRobotPaletteSwap/GodotGreenPalette.png<>uid://fpmmv2oxjcdv::::res://assets/characters/player/GodotRobotPaletteSwap/GodotPalette.png<>uid://bj7yrijm7bppq::::res://scripts/spring_arm_offset.gd<>uid://brp1gy30s4rks::::res://assets/characters/player/GodotRobotPaletteSwap/GodotRedPalette.png
 ::res://scenes/ui/::1766780441
 inventory_slot_ui.tscn::PackedScene::2831603828855830253::1766780441::0::1::::<><><>0<>0<><>::uid://bi0mlil0a0e5i::::res://scripts/inventory_slot_ui.gd
