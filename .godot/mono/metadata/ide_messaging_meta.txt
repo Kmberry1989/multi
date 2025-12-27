@@ -1,2 +1,2 @@
-﻿64735
-/private/var/folders/p5/h_ps64m11g995yysz12ydy2c0000gn/T/AppTranslocation/28B752EF-FA05-4382-A8B1-FA098A836118/d/Godot_mono.app/Contents/MacOS/Godot
+﻿49507
+/Users/kyleberry/Downloads/Godot_mono.app/Contents/MacOS/Godot
