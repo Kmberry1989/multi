@@ -50,25 +50,30 @@ func set_model(target_node: Node, character_name: String) -> void:
 	if not inst:
 		push_error("Instantiation failed for: %s" % scene_path)
 		return
-	inst.name = "CharacterModel"
-	
+
+	# Wrap the instance to avoid renaming the packed scene root (which breaks child paths)
+	var wrapper := Node3D.new()
+	wrapper.name = "CharacterModel"
+
 	# Attach the body controller script to ensure animations work
 	# We use the existing 3d_godot_robot.gd which implements the 'Body' class logic
 	var body_script = load("res://scripts/3d_godot_robot.gd")
 	if body_script:
-		inst.set_script(body_script)
+		wrapper.set_script(body_script)
 		# Manually set the exported variables if the script is attached
 		# _character should be the parent (player)
-		inst.character = target_node
+		wrapper.character = target_node
 		# AnimationPlayer is usually a direct child of the GLB scene
-		if inst.has_node("AnimationPlayer"):
-			inst.animation_player = inst.get_node("AnimationPlayer")
-	
-	target_node.add_child(inst)
+		var anim = inst.find_child("AnimationPlayer", true, false)
+		if anim and anim is AnimationPlayer:
+			wrapper.animation_player = anim
+
+	wrapper.add_child(inst)
+	target_node.add_child(wrapper)
 	
 	# Update player's reference to the body if applicable
 	if "body" in target_node:
-		target_node.body = inst
+		target_node.body = wrapper
 	# Ensure the new instance has the same owner as the player (useful in editor scenes)
 	if target_node.owner:
 		inst.owner = target_node.owner
