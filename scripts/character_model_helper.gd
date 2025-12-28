@@ -30,7 +30,13 @@ func setup_character_model(wrapper_node: Node) -> void:
 	if not shared:
 		shared = AnimationPlayer.new()
 		shared.name = "SharedAnimationPlayer"
-		wrapper_node.add_child(shared)
+		inst.add_child(shared)
+	elif shared.get_parent() != inst:
+		var old_parent = shared.get_parent()
+		if old_parent:
+			old_parent.remove_child(shared)
+		inst.add_child(shared)
+	shared.root_node = inst.get_path()
 
 	if wrapper_node is RobotBodyController:
 		wrapper_node.animation_player = shared
