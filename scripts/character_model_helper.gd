@@ -32,6 +32,9 @@ func setup_character_model(wrapper_node: Node) -> void:
 		shared.name = "SharedAnimationPlayer"
 		wrapper_node.add_child(shared)
 
+	if wrapper_node is RobotBodyController:
+		wrapper_node.animation_player = shared
+
 	# collect animation players inside the instanced model
 	var anim_players: Array = []
 	_collect_animation_players(inst, anim_players)

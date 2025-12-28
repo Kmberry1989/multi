@@ -82,9 +82,12 @@ func set_model(target_node: Node, character_name: String) -> void:
 		target_node.find_model_meshes()
 
 	# Wire shared animations if needed, though individual scenes usually have their own
-	var helper = load("res://scripts/character_model_helper.gd")
-	if helper and helper.has_method("setup_character_model"):
-		helper.setup_character_model(target_node)
+	var helper_script = load("res://scripts/character_model_helper.gd")
+	if helper_script:
+		var helper = helper_script.new()
+		if helper and helper.has_method("setup_character_model"):
+			helper.setup_character_model(wrapper)
+			helper.free()
 
 func set_model_by_player_name(root: Node, player_node_name: String, character_name: String) -> void:
 	if not root: return
