@@ -17,10 +17,10 @@ const FlareGhostScript = preload("res://scripts/lens_flare/flare_ghost.gd")
 @export var randomize_ghosts : bool = false :
 	set(value): _randomize(value)
 
-@export var ghosts : Array[Resource]
+@export var ghosts : Array[Resource] = []
 
 var camera : Camera3D
-var ghost_instances : Array[Node3D]
+var ghost_instances : Array[Node3D] = []
 
 func _ready() -> void:
 	if Engine.is_editor_hint():

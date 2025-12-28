@@ -11,7 +11,7 @@
 [ext_resource type="Texture2D" uid="uid://cvgmb638wdwdm" path="res://assets/textures/grass.png" id="7_grass"]
 [ext_resource type="PackedScene" uid="uid://doagc03egi3se" path="res://assets/objects/rock1.glb" id="10_tf2q7"]
 [ext_resource type="PackedScene" uid="uid://6fi3u47sk8wl" path="res://assets/objects/tree2.glb" id="11_pe1ox"]
-[ext_resource type="Environment" path="res://addons/flowing-sky/templates/sky.tres" id="12_flowingsky"]
+[ext_resource type="Environment" path="res://addons/flowing-sky/templates/sky_environment.tres" id="12_flowingsky"]
 [ext_resource type="Script" path="res://scripts/lens_flare/lens_flare.gd" id="13_lensflare"]
 [ext_resource type="Texture2D" path="res://scripts/lens_flare/lensflare.png" id="14_flaretex"]
 
