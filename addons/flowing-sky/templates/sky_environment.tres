@@ -3,5 +3,5 @@
 [ext_resource type="Sky" uid="uid://djx338cmyvob8" path="res://addons/flowing-sky/templates/sky.tres" id="1_sky"]
 
 [resource]
-background_mode = BACKGROUND_SKY
+background_mode = 2
 sky = ExtResource("1_sky")

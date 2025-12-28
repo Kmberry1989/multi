@@ -5,4 +5,4 @@
 [node name="Maia" type="Node3D"]
 script = null
 
-[node name="CharacterModel" parent="Maia" instance=ExtResource(1)]
+[node name="CharacterModel" parent="." instance=ExtResource(1)]

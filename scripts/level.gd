@@ -82,7 +82,12 @@ func _update_preview_model(character_name: String):
 	# Play Idle animation
 	var model = preview_character.get_node_or_null("CharacterModel")
 	if model and "animation_player" in model and model.animation_player:
-		model.animation_player.play("Idle")
+		if model.animation_player.has_animation("Idle"):
+			model.animation_player.play("Idle")
+		else:
+			var anims = model.animation_player.get_animation_list()
+			if anims.size() > 0:
+				model.animation_player.play(anims[0])
 
 func _cleanup_menu_scene():
 	if menu_camera:

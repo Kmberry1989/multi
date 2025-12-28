@@ -21,10 +21,13 @@ func _collect_body_nodes(node: Node, out: Array) -> void:
 
 func setup_character_model(wrapper_node: Node) -> void:
 	if not wrapper_node: return
-	if not wrapper_node.has_node("CharacterModel"):
+	var inst: Node = null
+	if wrapper_node.has_node("CharacterModel"):
+		inst = wrapper_node.get_node("CharacterModel")
+	elif wrapper_node.get_child_count() > 0:
+		inst = wrapper_node.get_child(0)
+	if not inst:
 		return
-
-	var inst = wrapper_node.get_node("CharacterModel")
 
 	var shared: AnimationPlayer = wrapper_node.get_node_or_null("SharedAnimationPlayer")
 	if not shared:
