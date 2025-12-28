@@ -13,6 +13,8 @@ func apply_rotation(_velocity: Vector3) -> void:
 	rotation.y = new_rotation_y
 
 func animate(_velocity: Vector3) -> void:
+	if not animation_player:
+		return
 	# Safety check: if _character is not a CharacterBody3D (e.g. preview mode), 
 	# don't access physics methods
 	if not character or not character is CharacterBody3D:

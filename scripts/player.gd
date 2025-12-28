@@ -35,25 +35,22 @@ func find_model_meshes():
 	# Robot nodes are removed at runtime in _ready() instead.
 
 	if model_root:
-		if model_root.has_node("RobotArmature/Skeleton3D/Bottom"):
-			_bottom_mesh = model_root.get_node("RobotArmature/Skeleton3D/Bottom")
-		elif model_root.has_node("Skeleton3D/Bottom"):
-			_bottom_mesh = model_root.get_node("Skeleton3D/Bottom")
+		_bottom_mesh = _find_model_mesh(model_root, "Bottom")
+		_chest_mesh = _find_model_mesh(model_root, "Chest")
+		_face_mesh = _find_model_mesh(model_root, "Face")
+		_limbs_head_mesh = _find_model_mesh(model_root, "Llimbs and head")
 
-		if model_root.has_node("RobotArmature/Skeleton3D/Chest"):
-			_chest_mesh = model_root.get_node("RobotArmature/Skeleton3D/Chest")
-		elif model_root.has_node("Skeleton3D/Chest"):
-			_chest_mesh = model_root.get_node("Skeleton3D/Chest")
-
-		if model_root.has_node("RobotArmature/Skeleton3D/Face"):
-			_face_mesh = model_root.get_node("RobotArmature/Skeleton3D/Face")
-		elif model_root.has_node("Skeleton3D/Face"):
-			_face_mesh = model_root.get_node("Skeleton3D/Face")
-
-		if model_root.has_node("RobotArmature/Skeleton3D/Llimbs and head"):
-			_limbs_head_mesh = model_root.get_node("RobotArmature/Skeleton3D/Llimbs and head")
-		elif model_root.has_node("Skeleton3D/Llimbs and head"):
-			_limbs_head_mesh = model_root.get_node("Skeleton3D/Llimbs and head")
+func _find_model_mesh(model_root: Node, mesh_name: String) -> MeshInstance3D:
+	var direct_robot = model_root.get_node_or_null("RobotArmature/Skeleton3D/%s" % mesh_name)
+	if direct_robot and direct_robot is MeshInstance3D:
+		return direct_robot
+	var direct = model_root.get_node_or_null("Skeleton3D/%s" % mesh_name)
+	if direct and direct is MeshInstance3D:
+		return direct
+	var found = model_root.find_child(mesh_name, true, false)
+	if found and found is MeshInstance3D:
+		return found
+	return null
 
 var _current_speed: float
 var _respawn_point = Vector3(0, 5, 0)
