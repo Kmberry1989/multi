@@ -12,8 +12,8 @@
 [ext_resource type="PackedScene" uid="uid://doagc03egi3se" path="res://assets/objects/rock1.glb" id="10_tf2q7"]
 [ext_resource type="PackedScene" uid="uid://6fi3u47sk8wl" path="res://assets/objects/tree2.glb" id="11_pe1ox"]
 [ext_resource type="Environment" path="res://addons/flowing-sky/templates/sky_environment.tres" id="12_flowingsky"]
-[ext_resource type="Script" path="res://scripts/lens_flare/lens_flare.gd" id="13_lensflare"]
-[ext_resource type="Texture2D" path="res://scripts/lens_flare/lensflare.png" id="14_flaretex"]
+[ext_resource type="Script" uid="uid://coii18b6wsbaw" path="res://scripts/lens_flare/lens_flare.gd" id="13_lensflare"]
+[ext_resource type="Texture2D" uid="uid://bjf0fexfwgg8d" path="res://scripts/lens_flare/lensflare.png" id="14_flaretex"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_r5xs5"]
 size = Vector3(90, 90, 90)

@@ -19,6 +19,42 @@ func _collect_body_nodes(node: Node, out: Array) -> void:
 			out.append(child)
 		_collect_body_nodes(child, out)
 
+func _find_first_skeleton(node: Node) -> Skeleton3D:
+	if node is Skeleton3D:
+		return node
+	for child in node.get_children():
+		var sk = _find_first_skeleton(child)
+		if sk:
+			return sk
+	return null
+
+func _retarget_animation_to_skeleton(anim: Animation, skeleton: Skeleton3D, root: Node) -> Animation:
+	if not anim:
+		return anim
+	if not skeleton or not root:
+		return anim.duplicate()
+	var dup: Animation = anim.duplicate()
+	var sk_rel_path: NodePath = root.get_path_to(skeleton)
+	for i in range(dup.get_track_count()):
+		var path: NodePath = dup.track_get_path(i)
+		if path.get_subname_count() == 0:
+			continue
+		var bone_name = path.get_subname(0)
+		if skeleton.find_bone(bone_name) == -1:
+			continue
+		var new_path = NodePath(sk_rel_path.get_concatenated_names() + ":" + bone_name)
+		dup.track_set_path(i, new_path)
+	return dup
+
+func _ensure_default_library(player: AnimationPlayer) -> AnimationLibrary:
+	# Godot 4 stores animations inside libraries. Keep a default library with an empty name
+	# so animations can be referenced without a prefix (e.g. "Idle").
+	if player.has_animation_library(""):
+		return player.get_animation_library("")
+	var lib := AnimationLibrary.new()
+	player.add_animation_library("", lib)
+	return lib
+
 func setup_character_model(wrapper_node: Node) -> void:
 	if not wrapper_node: return
 	var inst: Node = null
@@ -40,9 +76,11 @@ func setup_character_model(wrapper_node: Node) -> void:
 			old_parent.remove_child(shared)
 		inst.add_child(shared)
 	shared.root_node = inst.get_path()
+	var shared_lib := _ensure_default_library(shared)
 
 	if wrapper_node is RobotBodyController:
 		wrapper_node.animation_player = shared
+	var skeleton: Skeleton3D = _find_first_skeleton(inst)
 
 	# collect animation players inside the instanced model
 	var anim_players: Array = []
@@ -63,12 +101,13 @@ func setup_character_model(wrapper_node: Node) -> void:
 				for i in range(count):
 					list.append(ap.get_animation_name(i))
 
-		for anim_name in list:
-			if shared.has_animation(anim_name):
-				continue
-			var anim = ap.get_animation(anim_name)
-			if anim:
-				shared.add_animation(anim_name, anim.duplicate())
+			for anim_name in list:
+				if shared.has_animation(anim_name):
+					continue
+				var anim = ap.get_animation(anim_name)
+				if anim:
+					var retargeted = _retarget_animation_to_skeleton(anim, skeleton, inst)
+					shared_lib.add_animation(anim_name, retargeted)
 
 	# assign shared animation player to Body nodes inside the instanced model
 	if inst is RobotBodyController:
@@ -123,7 +162,8 @@ func setup_character_model(wrapper_node: Node) -> void:
 									anim.loop_mode = Animation.LOOP_LINEAR
 								else:
 									anim.loop_mode = Animation.LOOP_NONE
-								shared.add_animation(key, anim.duplicate())
+								var retargeted_glb = _retarget_animation_to_skeleton(anim, skeleton, inst)
+								shared_lib.add_animation(key, retargeted_glb)
 								print("Loaded animation: ", key, " from ", filename)
 					
 					temp.free()
