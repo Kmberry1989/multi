@@ -32,7 +32,16 @@ func _ready():
 	main_menu.join_pressed.connect(_on_join_pressed)
 	main_menu.quit_pressed.connect(_on_quit_pressed)
 	main_menu.character_changed.connect(_update_preview_model)
-	
+
+	if inventory_ui:
+		inventory_ui.inventory_closed.connect(_on_inventory_closed)
+
+	if multiplayer_chat:
+		multiplayer_chat.message_sent.connect(_on_chat_message_sent)
+
+	Network.connect("player_connected", Callable(self, "_on_player_connected"))
+	multiplayer.peer_disconnected.connect(_remove_player)
+
 	_setup_menu_scene()
 
 func _process(delta):
@@ -82,18 +91,6 @@ func _cleanup_menu_scene():
 	if preview_character:
 		preview_character.queue_free()
 		preview_character = null
-
-	if inventory_ui:
-		inventory_ui.inventory_closed.connect(_on_inventory_closed)
-
-	if multiplayer_chat:
-		multiplayer_chat.message_sent.connect(_on_chat_message_sent)
-
-	if not multiplayer.is_server():
-		return
-
-	Network.connect("player_connected", Callable(self, "_on_player_connected"))
-	multiplayer.peer_disconnected.connect(_remove_player)
 
 func _on_player_connected(peer_id, player_info):
 	_add_player(peer_id, player_info)
