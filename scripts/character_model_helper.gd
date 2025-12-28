@@ -1,6 +1,7 @@
 extends Node
 
-# Helper to wire a shared AnimationPlayer on a wrapper node that hosts a child instance named `CharacterModel`.
+# Helper to wire a shared AnimationPlayer on a wrapper node that hosts a child instance named 
+# `CharacterModel`.
 # It copies animations from any AnimationPlayer found inside the instanced model into a single
 # `SharedAnimationPlayer` on the wrapper and assigns that shared player to any `Body` instances
 # so the game's `Body.animation_player` points to the shared source.
@@ -14,7 +15,7 @@ func _collect_animation_players(node: Node, out: Array) -> void:
 func _collect_body_nodes(node: Node, out: Array) -> void:
 	for child in node.get_children():
 		# `Body` is declared in `scripts/3d_godot_robot.gd` as `class_name Body`.
-		if typeof(child) == TYPE_OBJECT and child is Body:
+		if typeof(child) == TYPE_OBJECT and child is RobotBodyController:
 			out.append(child)
 		_collect_body_nodes(child, out)
 
@@ -58,6 +59,9 @@ func setup_character_model(wrapper_node: Node) -> void:
 				shared.add_animation(anim_name, anim.duplicate())
 
 	# assign shared animation player to Body nodes inside the instanced model
+	if inst is RobotBodyController:
+		inst.animation_player = shared
+
 	var bodies: Array = []
 	_collect_body_nodes(inst, bodies)
 	for b in bodies:
@@ -66,7 +70,8 @@ func setup_character_model(wrapper_node: Node) -> void:
 	# If we didn't copy any animations, try loading shared AnimationLibrary resources
 	# from `res://assets/characters/player/Shared/Animations` and attach them to `shared.libraries`.
 	# Always attempt to populate missing standard keys from GLB files
-	# This ensures that even if a character has unique animations, they still get the basic move set (Idle, Run, etc.)
+	# This ensures that even if a character has unique animations, 
+	# they still get the basic move set (Idle, Run, etc.)
 	if true:
 		print("SharedAnimationPlayer empty. Attempting to load from GLBs...")
 		var anim_dir = "res://assets/characters/player/Shared/Animations/"
@@ -97,11 +102,15 @@ func setup_character_model(wrapper_node: Node) -> void:
 					if ap:
 						var anim_list = ap.get_animation_list()
 						if anim_list.size() > 0:
-							# Usually just one animation, take the first one or one matching the file
+							# Usually just one animation, take the first one 
+							# or one matching the file
 							var source_anim_name = anim_list[0]
 							var anim = ap.get_animation(source_anim_name)
 							if anim:
-								anim.loop_mode = Animation.LOOP_LINEAR if (key in ["Idle", "Run", "Walk_Forward", "Walk_Back", "Sprint"]) else Animation.LOOP_NONE
+								if key in ["Idle", "Run", "Walk_Forward", "Walk_Back", "Sprint"]:
+									anim.loop_mode = Animation.LOOP_LINEAR
+								else:
+									anim.loop_mode = Animation.LOOP_NONE
 								shared.add_animation(key, anim.duplicate())
 								print("Loaded animation: ", key, " from ", filename)
 					

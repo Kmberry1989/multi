@@ -1,5 +1,5 @@
 extends CharacterBody3D
-class_name Character
+class_name PlayerCharacter
 
 const NORMAL_SPEED = 6.0
 const SPRINT_SPEED = 10.0
@@ -84,7 +84,10 @@ func _ready():
 	var is_local_player = is_multiplayer_authority()
 	var local_client_id = multiplayer.get_unique_id()
 
-	print("Debug: Player ", name, " ready - authority: ", get_multiplayer_authority(), ", local client: ", local_client_id, ", is_local: ", is_local_player)
+	print(
+		"Debug: Player ", name, " ready - authority: ", get_multiplayer_authority(), 
+		", local client: ", local_client_id, ", is_local: ", is_local_player
+	)
 
 	if is_local_player:
 		player_inventory = PlayerInventory.new()
@@ -104,7 +107,10 @@ func _physics_process(delta):
 		var should_freeze = false
 		if current_scene.has_method("is_chat_visible") and current_scene.is_chat_visible():
 			should_freeze = true
-		elif current_scene.has_method("is_inventory_visible") and current_scene.is_inventory_visible():
+		elif (
+			current_scene.has_method("is_inventory_visible") 
+			and current_scene.is_inventory_visible()
+		):
 			should_freeze = true
 
 		if should_freeze:
@@ -152,7 +158,9 @@ func _move() -> void:
 			"move_forward", "move_backward"
 			)
 
-	var _direction: Vector3 = transform.basis * Vector3(_input_direction.x, 0, _input_direction.y).normalized()
+	var _direction: Vector3 = transform.basis * Vector3(
+		_input_direction.x, 0, _input_direction.y
+	).normalized()
 
 	is_running()
 	_direction = _direction.rotated(Vector3.UP, _spring_arm_offset.rotation.y)
@@ -170,9 +178,8 @@ func is_running() -> bool:
 	if Input.is_action_pressed("shift"):
 		_current_speed = SPRINT_SPEED
 		return true
-	else:
-		_current_speed = NORMAL_SPEED
-		return false
+	_current_speed = NORMAL_SPEED
+	return false
 
 func _check_fall_and_respawn():
 	if global_transform.origin.y < -15.0:
@@ -215,14 +222,21 @@ func set_mesh_texture(mesh_instance: MeshInstance3D, texture: CompressedTexture2
 # Inventory Network Functions - Server authoritative, client-specific
 @rpc("any_peer", "call_local", "reliable")
 func request_inventory_sync():
-	print("Debug: request_inventory_sync called on player ", name, " (authority: ", get_multiplayer_authority(), ") by client ", multiplayer.get_remote_sender_id())
+	print(
+		"Debug: request_inventory_sync called on player ", name, 
+		" (authority: ", get_multiplayer_authority(), 
+		") by client ", multiplayer.get_remote_sender_id()
+	)
 
 	if not multiplayer.is_server():
 		return
 
 	var requesting_client = multiplayer.get_remote_sender_id()
 	if requesting_client != get_multiplayer_authority():
-		push_warning("Client " + str(requesting_client) + " tried to request inventory for player " + str(get_multiplayer_authority()))
+		push_warning(
+			"Client " + str(requesting_client) + " tried to request inventory for player " 
+			+ str(get_multiplayer_authority())
+		)
 		return
 
 	if player_inventory:
@@ -230,7 +244,12 @@ func request_inventory_sync():
 
 @rpc("any_peer", "call_local", "reliable")
 func sync_inventory_to_owner(inventory_data: Dictionary):
-	print("Debug: sync_inventory_to_owner called on player ", name, " (authority: ", get_multiplayer_authority(), ") - local unique id: ", multiplayer.get_unique_id(), " from: ", multiplayer.get_remote_sender_id())
+	print(
+		"Debug: sync_inventory_to_owner called on player ", name, 
+		" (authority: ", get_multiplayer_authority(), 
+		") - local unique id: ", multiplayer.get_unique_id(), 
+		" from: ", multiplayer.get_remote_sender_id()
+	)
 
 	if multiplayer.get_remote_sender_id() != 1:
 		return
@@ -258,20 +277,30 @@ func sync_inventory_to_owner(inventory_data: Dictionary):
 
 @rpc("any_peer", "call_local", "reliable")
 func request_move_item(from_slot: int, to_slot: int, quantity: int = -1):
-	print("Debug: request_move_item called - from:", from_slot, " to:", to_slot, " on player ", name, " (authority: ", get_multiplayer_authority(), ") by client ", multiplayer.get_remote_sender_id())
+	print(
+		"Debug: request_move_item called - from:", from_slot, " to:", to_slot, 
+		" on player ", name, " (authority: ", get_multiplayer_authority(), 
+		") by client ", multiplayer.get_remote_sender_id()
+	)
 
 	if not multiplayer.is_server():
 		return
 
 	var requesting_client = multiplayer.get_remote_sender_id()
 	if requesting_client != get_multiplayer_authority():
-		push_warning("Client " + str(requesting_client) + " tried to modify inventory for player " + str(get_multiplayer_authority()))
+		push_warning(
+			"Client " + str(requesting_client) + " tried to modify inventory for player " 
+			+ str(get_multiplayer_authority())
+		)
 		return
 
 	if not player_inventory:
 		return
 
-	if from_slot < 0 or from_slot >= PlayerInventory.INVENTORY_SIZE or to_slot < 0 or to_slot >= PlayerInventory.INVENTORY_SIZE:
+	if (
+		from_slot < 0 or from_slot >= PlayerInventory.INVENTORY_SIZE 
+		or to_slot < 0 or to_slot >= PlayerInventory.INVENTORY_SIZE
+	):
 		push_warning("Invalid slot indices: from=" + str(from_slot) + " to=" + str(to_slot))
 		return
 
@@ -301,14 +330,21 @@ func request_move_item(from_slot: int, to_slot: int, quantity: int = -1):
 
 @rpc("any_peer", "call_local", "reliable")
 func request_add_item(item_id: String, quantity: int = 1):
-	print("Debug: request_add_item called on player ", name, " (authority: ", get_multiplayer_authority(), ") by client ", multiplayer.get_remote_sender_id())
+	print(
+		"Debug: request_add_item called on player ", name, 
+		" (authority: ", get_multiplayer_authority(), 
+		") by client ", multiplayer.get_remote_sender_id()
+	)
 
 	if not multiplayer.is_server():
 		return
 
 	var requesting_client = multiplayer.get_remote_sender_id()
 	if requesting_client != get_multiplayer_authority() and requesting_client != 1:
-		push_warning("Client " + str(requesting_client) + " tried to add items to player " + str(get_multiplayer_authority()))
+		push_warning(
+			"Client " + str(requesting_client) + " tried to add items to player " 
+			+ str(get_multiplayer_authority())
+		)
 		return
 
 	if not player_inventory:
@@ -339,14 +375,21 @@ func request_add_item(item_id: String, quantity: int = 1):
 
 @rpc("any_peer", "call_local", "reliable")
 func request_remove_item(item_id: String, quantity: int = 1):
-	print("Debug: request_remove_item called on player ", name, " (authority: ", get_multiplayer_authority(), ") by client ", multiplayer.get_remote_sender_id())
+	print(
+		"Debug: request_remove_item called on player ", name, 
+		" (authority: ", get_multiplayer_authority(), 
+		") by client ", multiplayer.get_remote_sender_id()
+	)
 
 	if not multiplayer.is_server():
 		return
 
 	var requesting_client = multiplayer.get_remote_sender_id()
 	if requesting_client != get_multiplayer_authority():
-		push_warning("Client " + str(requesting_client) + " tried to remove items from player " + str(get_multiplayer_authority()))
+		push_warning(
+			"Client " + str(requesting_client) + " tried to remove items from player " 
+			+ str(get_multiplayer_authority())
+		)
 		return
 
 	if not player_inventory:

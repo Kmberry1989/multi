@@ -7,7 +7,7 @@ class_name InventoryUI
 @onready var tooltip: Control = $ItemTooltip
 @onready var tooltip_label: RichTextLabel = $ItemTooltip/Panel/MarginContainer/TooltipText
 
-var current_player: Character
+var current_player: PlayerCharacter
 var slot_ui_scene: PackedScene
 var slot_uis: Array[InventorySlotUI] = []
 
@@ -80,11 +80,17 @@ func _show_tooltip(item: Item):
 	if not item:
 		return
 
-	var tooltip_content = "[b][color=#FFD700]" + item.name + "[/color][/b]\n"
+	var tooltip_content = (
+		"[b][color=#FFD700]" + item.name + "[/color][/b]\n"
+	)
 	tooltip_content += "[color=#CCCCCC]" + item.description + "[/color]\n\n"
-	tooltip_content += "[color=#87CEEB]Type:[/color] " + _get_item_type_string(item.item_type) + "\n"
+	tooltip_content += (
+		"[color=#87CEEB]Type:[/color] " + _get_item_type_string(item.item_type) + "\n"
+	)
 	tooltip_content += "[color=#FF69B4]Rarity:[/color] " + _get_rarity_string(item.rarity) + "\n"
-	tooltip_content += "[color=#FFD700]Value:[/color] " + str(item.value) + " gold"
+	tooltip_content += (
+		"[color=#FFD700]Value:[/color] " + str(item.value) + " gold"
+	)
 
 	if item.stackable:
 		tooltip_content += "\n[color=#98FB98]Max Stack:[/color] " + str(item.max_stack)
@@ -146,7 +152,7 @@ func _on_close_pressed():
 	inventory_closed.emit()
 	visible = false
 
-func open_inventory(player: Character = null):
+func open_inventory(player: PlayerCharacter = null):
 	if player:
 		current_player = player
 		update_inventory_display()

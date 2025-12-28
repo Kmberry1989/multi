@@ -32,7 +32,9 @@ extends MultiMeshInstance3D
 @export_color_no_alpha var albedo := Color.WHITE : set = _on_set_albedo
 ## Texture albedo for mesh, you can apply normal, metallic and roughness 
 ## textures on the "Material parameters" section
-@export var texture_albedo : Texture = load("res://addons/simplegrasstextured/textures/grassbushcc008.png") : set = _on_set_texture_albedo
+@export var texture_albedo : Texture = load(
+	"res://addons/simplegrasstextured/textures/grassbushcc008.png"
+) : set = _on_set_texture_albedo
 @export_group("Material parameters")
 ## Lets you setup a multi texture image by frames
 @export var texture_frames : Vector2i = Vector2i(1, 1) : set = _on_set_texture_frames;
@@ -44,18 +46,24 @@ extends MultiMeshInstance3D
 ## the grass, recommended for very simple meshes[br][br]
 ## [b]Unshaded[/b][br]No lighting will affect the grass
 @export_enum("Lambert", "Normal grass", "Unshaded") var light_mode := 1 : set = _on_set_light_mode
-@export_enum("Nearest", "Linear", "Nearest mipmap", "Linear mipmap") var texture_filter := 3 : set = _on_set_texture_filter
+@export_enum(
+	"Nearest", "Linear", "Nearest mipmap", "Linear mipmap"
+) var texture_filter := 3 : set = _on_set_texture_filter
 @export_subgroup("Normal")
 @export var texture_normal : Texture = null : set = _on_set_texture_normal
 @export_range(-16.0, 16.0) var normal_scale := 1.0 : set = _on_set_normal_scale
 @export_subgroup("Metallic")
 @export var texture_metallic : Texture = null : set = _on_set_texture_metallic
-@export_enum("Red","Green","Blue","Alpha","Gray") var metallic_texture_channel : int = 0 : set = _on_set_metallic_texture_channel
+@export_enum(
+	"Red","Green","Blue","Alpha","Gray"
+) var metallic_texture_channel : int = 0 : set = _on_set_metallic_texture_channel
 @export_range(0.0, 1.0) var metallic := 0.0 : set = _on_set_metallic
 @export_range(0.0, 1.0) var specular := 0.5 : set = _on_set_specular
 @export_subgroup("Roughness")
 @export var texture_roughness : Texture = null : set = _on_set_texture_roughness
-@export_enum("Red","Green","Blue","Alpha","Gray") var roughness_texture_channel : int = 0 : set = _on_set_roughness_texture_channel
+@export_enum(
+	"Red","Green","Blue","Alpha","Gray"
+) var roughness_texture_channel : int = 0 : set = _on_set_roughness_texture_channel
 @export_range(0.0, 1.0) var roughness := 1.0 : set = _on_set_roughness
 @export_group("")
 ## Scale height factor of all the grass
@@ -80,7 +88,8 @@ extends MultiMeshInstance3D
 ## [code]SimpleGrass.set_player_position()[/code] regulary (on your _process 
 ## function by example)[br][br]
 ## [b]You can see how to enable "interactive mode" on:[/b][br]
-## [url]https://github.com/IcterusGames/SimpleGrassTextured?tab=readme-ov-file#how-to-enable-interactive-mode[/url]
+## [url]https://github.com/IcterusGames/SimpleGrassTextured?tab=readme-ov-file#
+## how-to-enable-interactive-mode[/url]
 @export var interactive : bool = true : set = _on_set_interactive
 @export_group("Advanced")
 ## Allows you to define how much the grass will react to objects on axis X and Z
@@ -104,7 +113,7 @@ extends MultiMeshInstance3D
 @export_group("Draw Collision Mask")
 ## This is the collision mask for drawing, this allows you to define what your 
 ## terrain collision mask is, that way it will be easier to draw your grass.
-@export_flags_3d_physics var collision_mask :int = pow(2, 32) - 1
+@export_flags_3d_physics var collision_mask :int = 0xFFFFFFFF
 
 var sgt_radius := 2.0
 var sgt_density := 25
@@ -128,7 +137,9 @@ var wind_pattern : Texture = null : set = _on_set_wind_pattern
 
 var _default_mesh : Mesh = load("res://addons/simplegrasstextured/default_mesh.tres").duplicate()
 var _buffer_add : Array[Transform3D] = []
-var _material := load("res://addons/simplegrasstextured/materials/grass.material").duplicate() as ShaderMaterial
+var _material := load(
+	"res://addons/simplegrasstextured/materials/grass.material"
+).duplicate() as ShaderMaterial
 var _force_update_multimesh := false
 var _properties = []
 var _node_height_map = null
@@ -145,7 +156,9 @@ var _wrng_deprec_windpatt = true
 func _init():
 	if Engine.is_editor_hint():
 		if collision_mask == pow(2, 32) - 1:
-			collision_mask = ProjectSettings.get_setting("SimpleGrassTextured/General/default_terrain_physics_layer", pow(2, 32) -1)
+			collision_mask = ProjectSettings.get_setting(
+				"SimpleGrassTextured/General/default_terrain_physics_layer", pow(2, 32) -1
+			)
 		for var_i in get_property_list():
 			if not var_i.name.begins_with("sgt_"):
 				continue
@@ -260,7 +273,8 @@ func _get_property_list() -> Array:
 	return _properties
 
 
-func eval_grass_transform(pos : Vector3, normal : Vector3, scale : Vector3, rotated : float) -> Transform3D:
+func eval_grass_transform(pos : Vector3, normal : Vector3, p_scale : Vector3, rotated : float
+) -> Transform3D:
 	var trans := Transform3D()
 	if abs(normal.z) == 1:
 		trans.basis.x = Vector3(1,0,0)
@@ -273,13 +287,13 @@ func eval_grass_transform(pos : Vector3, normal : Vector3, scale : Vector3, rota
 		trans.basis.z = trans.basis.x.cross(normal)
 		trans.basis = trans.basis.orthonormalized()
 	trans = trans.rotated_local(Vector3.UP, rotated)
-	trans = trans.scaled(scale)
+	trans = trans.scaled(p_scale)
 	trans = trans.translated(pos)
 	return trans
 
 
-func add_grass(pos : Vector3, normal : Vector3, scale : Vector3, rotated : float):
-	var trans := eval_grass_transform(pos, normal, scale, rotated)
+func add_grass(pos : Vector3, normal : Vector3, p_scale : Vector3, rotated : float):
+	var trans := eval_grass_transform(pos, normal, p_scale, rotated)
 	if sgt_dist_min > 0:
 		for trans_prev in _buffer_add:
 			if trans.origin.distance_to(trans_prev.origin) <= sgt_dist_min:
@@ -301,7 +315,9 @@ func add_grass_batch(transforms : Array):
 
 
 func erase(pos: Vector3, radius: float) -> void:
-	if not multimesh.get_aabb().intersects(AABB(pos - Vector3(radius, radius, radius), Vector3(radius, radius, radius) * 2)):
+	if not multimesh.get_aabb().intersects(
+		AABB(pos - Vector3(radius, radius, radius), Vector3(radius, radius, radius) * 2)
+	):
 		return
 	_apply_erase_tool(func(array: Array[Transform3D]) -> int:
 			var num_to_erase := 0
@@ -315,7 +331,8 @@ func erase(pos: Vector3, radius: float) -> void:
 	)
 
 
-func erase_cylinder(pos: Vector3, rx: float, height: float, rz: float, shape_transform: Transform3D) -> void:
+func erase_cylinder(_pos: Vector3, rx: float, height: float, rz: float, shape_transform: Transform3D
+) -> void:
 	var aabb := AABB(Vector3(-rx, -height / 2, -rz), Vector3(rx, height / 2, rz) * 2)
 	aabb = shape_transform * aabb
 	if not (global_transform * multimesh.get_aabb()).intersects(aabb):
@@ -334,7 +351,7 @@ func erase_cylinder(pos: Vector3, rx: float, height: float, rz: float, shape_tra
 	)
 
 
-func erase_box(pos: Vector3, size: Vector3, shape_transform: Transform3D) -> void:
+func erase_box(_pos: Vector3, size: Vector3, shape_transform: Transform3D) -> void:
 	var aabb := AABB(-size / 2, size)
 	if not (global_transform * multimesh.get_aabb()).intersects(shape_transform * aabb):
 		return
@@ -373,7 +390,9 @@ func snap_to_terrain() -> void:
 	recalculate_custom_aabb()
 
 
-static func _raycast(from: Node3D, pos: Vector3, dir: Vector3, dist: float, mask: int) -> Dictionary:
+static func _raycast(
+	from: Node3D, pos: Vector3, dir: Vector3, dist: float, mask: int
+) -> Dictionary:
 	var space_state = from.get_world_3d().direct_space_state
 	var query = PhysicsRayQueryParameters3D.create(pos, pos + dir * dist, mask, [from])
 	return space_state.intersect_ray(query)
@@ -589,7 +608,10 @@ func _local_height_map_to_global(img : Image) -> Image:
 			var color : Color = img.get_pixel(x, y)
 			if color.a == 0:
 				continue
-			var posy : float = (((roundf(color.r * 255.0) - 75.0) * 180.0) + (roundf(color.g * 255.0) - 75.0) + color.b)
+			var posy : float = (
+				((roundf(color.r * 255.0) - 75.0) * 180.0) 
+				+ (roundf(color.g * 255.0) - 75.0) + color.b
+			)
 			posy += global_position.y
 			color.r = (floorf(posy / 180.0) + 75.0) / 255.0
 			color.g = (floorf(posy - ((roundf(color.r * 255.0) - 75.0) * 180.0)) + 75.0) / 255.0
@@ -680,11 +702,17 @@ func _update_material_shader() -> bool:
 		shader_name += "_nearest_mipmap"
 	elif texture_filter == 3:
 		shader_name += "" # Linear mipmap is the default filter
-	if _material.get_shader().resource_path != "res://addons/simplegrasstextured/shaders/" + shader_name + ".gdshader":
-		_material.shader = load("res://addons/simplegrasstextured/shaders/" + shader_name + ".gdshader")
+	if _material.get_shader().resource_path != (
+		"res://addons/simplegrasstextured/shaders/" + shader_name + ".gdshader"
+	):
+		_material.shader = load(
+			"res://addons/simplegrasstextured/shaders/" + shader_name + ".gdshader"
+		)
 		if _material.get_shader() == null:
 			_material.shader = load("res://addons/simplegrasstextured/shaders/grass.gdshader")
-			_material.shader.take_over_path("res://addons/simplegrasstextured/shaders/" + shader_name + ".gdshader")
+			_material.shader.take_over_path(
+				"res://addons/simplegrasstextured/shaders/" + shader_name + ".gdshader"
+			)
 		return true
 	return false
 
@@ -719,7 +747,9 @@ func _on_set_texture_frames(value : Vector2i):
 	if texture_frames.y <= 0:
 		texture_frames.y = 1
 	if _material != null:
-		_material.set_shader_parameter("texture_frames", Vector2(texture_frames.x, texture_frames.y))
+		_material.set_shader_parameter(
+			"texture_frames", Vector2(texture_frames.x, texture_frames.y)
+		)
 
 
 func _on_set_light_mode(value : int):
@@ -931,38 +961,50 @@ func _on_set_player_pos(value : Vector3):
 		#_singleton.set_player_position(value)
 		if _wrng_deprec_playerpos and (Engine.is_editor_hint() or OS.is_debug_build()):
 			_wrng_deprec_playerpos = false
-			push_warning("Simple Grass Textured: ("+name+") player_pos parameter is deprecated, use SimpleGrass.set_player_position")
+			push_warning(
+				"Simple Grass Textured: ("+name+") player_pos parameter is deprecated, use "
+				+ "SimpleGrass.set_player_position"
+			)
 
 
-func _on_set_player_radius(value : float):
+func _on_set_player_radius(_value : float):
 	player_radius = 0.5
 	if _wrng_deprec_playerrad and (Engine.is_editor_hint() or OS.is_debug_build()):
 		_wrng_deprec_playerrad = false
 		push_warning("Simple Grass Textured: ("+name+") player_radius parameter is deprecated")
 
 
-func _on_set_wind_dir(value : Vector3):
+func _on_set_wind_dir(_value : Vector3):
 	wind_dir = Vector3.RIGHT
 	#_singleton.wind_direction = value
 	if _wrng_deprec_windir and (Engine.is_editor_hint() or OS.is_debug_build()):
 		_wrng_deprec_windir = false
-		push_warning("Simple Grass Textured: ("+name+") wind_dir parameter is deprecated, use SimpleGrass.wind_direction")
+		push_warning(
+			"Simple Grass Textured: ("+name+") wind_dir parameter is deprecated, use "
+			+ "SimpleGrass.wind_direction"
+		)
 
 
-func _on_set_wind_strength(value : float):
+func _on_set_wind_strength(_value : float):
 	wind_strength = 0.15
 	#_singleton.wind_strength = value
 	if _wrng_deprec_windstrng and (Engine.is_editor_hint() or OS.is_debug_build()):
 		_wrng_deprec_windstrng = false
-		push_warning("Simple Grass Textured: ("+name+") wind_strength parameter is deprecated, use SimpleGrass.wind_strength")
+		push_warning(
+			"Simple Grass Textured: ("+name+") wind_strength parameter is deprecated, use "
+			+ "SimpleGrass.wind_strength"
+		)
 
 
-func _on_set_wind_turbulence(value : float):
+func _on_set_wind_turbulence(_value : float):
 	wind_turbulence = 1.0
 	#_singleton.wind_turbulence = value
 	if _wrng_deprec_windturb and (Engine.is_editor_hint() or OS.is_debug_build()):
 		_wrng_deprec_windturb = false
-		push_warning("Simple Grass Textured: ("+name+") wind_turbulence parameter is deprecated, use SimpleGrass.wind_turbulence")
+		push_warning(
+			"Simple Grass Textured: ("+name+") wind_turbulence parameter is deprecated, use "
+			+ "SimpleGrass.wind_turbulence"
+		)
 
 
 func _on_set_wind_pattern(value : Texture):
@@ -970,4 +1012,7 @@ func _on_set_wind_pattern(value : Texture):
 	#RenderingServer.global_shader_parameter_set("sgt_wind_pattern", value)
 	if value != null and _wrng_deprec_windpatt and (Engine.is_editor_hint() or OS.is_debug_build()):
 		_wrng_deprec_windpatt = false
-		push_warning("Simple Grass Textured: ("+name+") wind_pattern parameter is deprecated, use SimpleGrass.set_wind_pattern")
+		push_warning(
+			"Simple Grass Textured: ("+name+") wind_pattern parameter is deprecated, use "
+			+ "SimpleGrass.set_wind_pattern"
+		)

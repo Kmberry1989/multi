@@ -30,7 +30,10 @@ func _ready() -> void:
 	
 	# Auto-generate ghosts if none are provided
 	if ghosts.size() == 0:
-		var colors = [Color(1, 0.8, 0, 0.6), Color(1, 0.5, 0, 0.4), Color(1, 0, 0, 0.2), Color(0, 0, 1, 0.3), Color(0, 1, 0, 0.2)]
+		var colors = [
+			Color(1, 0.8, 0, 0.6), Color(1, 0.5, 0, 0.4), Color(1, 0, 0, 0.2), 
+			Color(0, 0, 1, 0.3), Color(0, 1, 0, 0.2)
+		]
 		for i in range(5):
 			var g = FlareGhostScript.new()
 			g.color = colors[i % colors.size()]
@@ -56,13 +59,15 @@ func _process(_delta) -> void:
 		return
 	
 	# Ensure camera is valid
-	if not camera:
+	if not is_instance_valid(camera):
 		camera = get_viewport().get_camera_3d()
-		if not camera:
+		if not is_instance_valid(camera):
 			return
 	
 	# Raycast to check if the sun (center) is visible on screen
-	var raycast_result : Dictionary = get_world_3d().direct_space_state.intersect_ray(PhysicsRayQueryParameters3D.create(camera.global_position, self.global_position))
+	var raycast_result : Dictionary = get_world_3d().direct_space_state.intersect_ray(
+		PhysicsRayQueryParameters3D.create(camera.global_position, self.global_position)
+	)
 
 	# If the center of the sun is hidden, then we don't show the ghosts
 	if raycast_result.is_empty():
@@ -90,7 +95,9 @@ func _process(_delta) -> void:
 		var sprite_offset : float = remap(1,0,ghost_instances.size(),0,length)
 		# Offset the sprite along the sun_to_center vector starting from the sun
 		# plus one sprite_offset so we don't start *inside* the sun
-		ghost_instances[i].global_position = camera.project_position(sun_screen + (sprite_offset+(i*sprite_offset)) * sun_to_center, 1)
+		ghost_instances[i].global_position = camera.project_position(
+			sun_screen + (sprite_offset+(i*sprite_offset)) * sun_to_center, 1
+		)
 		ghost_instances[i].visible = true
 
 # Randomizes the ghosts to a pleasant value

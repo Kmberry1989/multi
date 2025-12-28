@@ -1,5 +1,5 @@
 extends Control
-class_name MainMenuUI
+class_name GameMainMenuUI
 
 signal host_pressed(nickname: String, skin: String, character_name: String)
 signal join_pressed(nickname: String, skin: String, address: String, character_name: String)

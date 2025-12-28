@@ -1,5 +1,5 @@
 extends Control
-class_name MultiplayerChatUI
+class_name GameMultiplayerChatUI
 
 @onready var message: LineEdit = $Panel/MarginContainer/VBoxContainer/HBoxContainer/Message
 @onready var send: Button = $Panel/MarginContainer/VBoxContainer/HBoxContainer/Send

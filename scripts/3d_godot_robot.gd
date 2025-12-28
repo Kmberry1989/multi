@@ -1,5 +1,5 @@
 extends Node3D
-class_name Body
+class_name RobotBodyController
 
 const LERP_VELOCITY: float = 0.15
 
@@ -13,7 +13,8 @@ func apply_rotation(_velocity: Vector3) -> void:
 	rotation.y = new_rotation_y
 
 func animate(_velocity: Vector3) -> void:
-	# Safety check: if _character is not a CharacterBody3D (e.g. preview mode), don't access physics methods
+	# Safety check: if _character is not a CharacterBody3D (e.g. preview mode), 
+	# don't access physics methods
 	if not character or not character is CharacterBody3D:
 		if animation_player:
 			if animation_player.current_animation != "Idle":

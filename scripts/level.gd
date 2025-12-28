@@ -2,10 +2,10 @@ extends Node3D
 # Force reload
 
 @onready var players_container: Node3D = $PlayersContainer
-@onready var main_menu: MainMenuUI = $MainMenuUI
+@onready var main_menu: GameMainMenuUI = $MainMenuUI
 @export var player_scene: PackedScene
 
-@onready var multiplayer_chat: MultiplayerChatUI = $MultiplayerChatUI
+@onready var multiplayer_chat: GameMultiplayerChatUI = $MultiplayerChatUI
 @onready var inventory_ui: InventoryUI = $InventoryUI
 
 var chat_visible = false
@@ -16,7 +16,7 @@ var preview_character: Node3D
 var preview_rotation_speed = 1.0
 
 const CHARACTER_SWITCHER_SCRIPT = preload("res://scripts/character_switcher.gd")
-const CONTROLS_UI_SCENE = preload("res://scenes/ui/controls_ui.tscn")
+const CONTROLS_UI_SCENE = preload("res://scenes/ui/controls_ui.tscn") # Scene confirmed to exist
 
 
 func _ready():
@@ -243,17 +243,19 @@ func update_local_inventory_display():
 		inventory_ui.refresh_display()
 		print("Debug: Inventory display updated from server sync")
 
-func _get_local_player() -> Character:
+func _get_local_player() -> PlayerCharacter:
 	var local_player_id = multiplayer.get_unique_id()
 	if players_container.has_node(str(local_player_id)):
-		return players_container.get_node(str(local_player_id)) as Character
+		return players_container.get_node(str(local_player_id)) as PlayerCharacter
 	return null
 
 # Debug functions for testing inventory system
 func _debug_add_item():
 	var local_player = _get_local_player()
 	if local_player:
-		var test_items = ["iron_sword", "health_potion", "leather_armor", "magic_gem", "iron_pickaxe"]
+		var test_items = [
+			"iron_sword", "health_potion", "leather_armor", "magic_gem", "iron_pickaxe"
+		]
 		var random_item = test_items[randi() % test_items.size()]
 		print("Debug: Requesting to add ", random_item, 
 			" to player ", local_player.name, 

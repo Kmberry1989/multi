@@ -7,7 +7,7 @@ const MAX_PLAYERS : int = 10
 var players = {}
 var player_info = {
 	"nick" : "host",
-	"skin" : Character.SkinColor.BLUE,
+	"skin" : PlayerCharacter.SkinColor.BLUE,
 	"character": "kyle"
 }
 
@@ -45,7 +45,10 @@ func start_host(nickname: String, skin_color_str: String, character_name: String
 	players[1] = player_info
 	player_connected.emit(1, player_info)
 
-func join_game(nickname: String, skin_color_str: String, address: String = SERVER_ADDRESS, character_name: String = "kyle"):
+func join_game(
+	nickname: String, skin_color_str: String, address: String = SERVER_ADDRESS,
+	character_name: String = "kyle"
+):
 	var peer = ENetMultiplayerPeer.new()
 	var error = peer.create_client(address, SERVER_PORT)
 	if error:
@@ -91,8 +94,8 @@ func _on_server_disconnected():
 
 func skin_str_to_e(s):
 	match s.to_lower():
-		"blue": return Character.SkinColor.BLUE
-		"yellow": return Character.SkinColor.YELLOW
-		"green": return Character.SkinColor.GREEN
-		"red": return Character.SkinColor.RED
-		_: return Character.SkinColor.BLUE
+		"blue": return PlayerCharacter.SkinColor.BLUE
+		"yellow": return PlayerCharacter.SkinColor.YELLOW
+		"green": return PlayerCharacter.SkinColor.GREEN
+		"red": return PlayerCharacter.SkinColor.RED
+		_: return PlayerCharacter.SkinColor.BLUE
