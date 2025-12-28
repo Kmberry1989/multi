@@ -7,8 +7,10 @@ var animation_map := {
     "Walk_Forward": "Walking",
     "Walk_Back": "Walking Backward",
     "Run": "Running",
+    "Sprint": "Running", # Duplicate mapping for Sprint
     "Step_Back": "Step Backward",
     "Jump": "Jump",
+    "Fall": "Jumping Down", # Fallback for fall
     "Land": "Jumping Down",
     "Crouch": "Crouched Walking",
     "Crouch_Exit": "Crouch To Stand",

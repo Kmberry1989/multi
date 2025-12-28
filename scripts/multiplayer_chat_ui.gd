@@ -10,8 +10,8 @@ signal message_sent(message_text: String)
 var chat_visible = false
 
 func _ready():
-	send.pressed.connect(_on_send_pressed)
-	message.text_submitted.connect(_on_send_pressed)
+	send.pressed.connect(send_chat_message)
+	message.text_submitted.connect(send_chat_message.unbind(1))
 	clear_chat()
 	hide()
 
@@ -29,7 +29,7 @@ func toggle_chat():
 func is_chat_visible() -> bool:
 	return chat_visible
 
-func _on_send_pressed():
+func send_chat_message():
 	var message_text = message.text.strip_edges()
 	if message_text.is_empty():
 		return

@@ -12,7 +12,7 @@ enum SkinColor { BLUE, YELLOW, GREEN, RED }
 var player_inventory: PlayerInventory
 
 @export_category("Objects")
-@export var _body: Node3D = null
+@export var body: Node3D = null
 @export var _spring_arm_offset: Node3D = null
 
 @export_category("Skin Colors")
@@ -26,7 +26,7 @@ var _chest_mesh: MeshInstance3D
 var _face_mesh: MeshInstance3D
 var _limbs_head_mesh: MeshInstance3D
 
-func _find_model_meshes():
+func find_model_meshes():
 	var model_root: Node = null
 	if has_node("CharacterModel"):
 		model_root = get_node("CharacterModel")
@@ -64,16 +64,23 @@ var has_double_jumped = false
 
 func _enter_tree():
 	set_multiplayer_authority(str(name).to_int())
-	$SpringArmOffset/SpringArm3D/Camera3D.current = is_multiplayer_authority()
 
 func _ready():
-	# Remove embedded robot visuals if present to prevent overlap with CharacterModel
-	if has_node("3DGodotRobot"):
-		var robot_node = get_node("3DGodotRobot")
-		if robot_node and robot_node.is_inside_tree():
-			robot_node.queue_free()
+	# Ensure the camera is current for the local player
+	if is_multiplayer_authority():
+		var cam = get_node_or_null("SpringArmOffset/SpringArm3D/Camera3D")
+		if cam:
+			cam.current = true
+			
+	# Ensure a character model is present. If not, default to Kyle.
 
-	_find_model_meshes()
+	# The placeholder in player.tscn might handle this, but explicit initialization is safer.
+	if not has_node("CharacterModel") and not has_node("3DGodotRobot"):
+		var switcher = load("res://scripts/character_switcher.gd").new()
+		switcher.set_model(self, "kyle")
+		switcher.queue_free()
+
+	find_model_meshes()
 	var is_local_player = is_multiplayer_authority()
 	var local_client_id = multiplayer.get_unique_id()
 
@@ -111,7 +118,7 @@ func _physics_process(delta):
 		if Input.is_action_just_pressed("jump"):
 			velocity.y = JUMP_VELOCITY
 			can_double_jump = true
-			_body.play_jump_animation("Jump")
+			body.play_jump_animation("Jump")
 	else:
 		velocity.y -= gravity * delta
 
@@ -119,13 +126,13 @@ func _physics_process(delta):
 			velocity.y = JUMP_VELOCITY
 			has_double_jumped = true
 			can_double_jump = false
-			_body.play_jump_animation("Jump2")
+			body.play_jump_animation("Jump2")
 
 	velocity.y -= gravity * delta
 
 	_move()
 	move_and_slide()
-	_body.animate(velocity)
+	body.animate(velocity)
 
 func _process(_delta):
 	if not is_multiplayer_authority(): return
@@ -135,7 +142,7 @@ func freeze():
 	velocity.x = 0
 	velocity.z = 0
 	_current_speed = 0
-	_body.animate(Vector3.ZERO)
+	body.animate(Vector3.ZERO)
 
 func _move() -> void:
 	var _input_direction: Vector2 = Vector2.ZERO
@@ -153,7 +160,7 @@ func _move() -> void:
 	if _direction:
 		velocity.x = _direction.x * _current_speed
 		velocity.z = _direction.z * _current_speed
-		_body.apply_rotation(velocity)
+		body.apply_rotation(velocity)
 		return
 
 	velocity.x = move_toward(velocity.x, 0, _current_speed)

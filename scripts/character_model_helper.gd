@@ -50,12 +50,12 @@ func setup_character_model(wrapper_node: Node) -> void:
 				for i in range(count):
 					list.append(ap.get_animation_name(i))
 
-		for name in list:
-			if shared.has_animation(name):
+		for anim_name in list:
+			if shared.has_animation(anim_name):
 				continue
-			var anim = ap.get_animation(name)
+			var anim = ap.get_animation(anim_name)
 			if anim:
-				shared.add_animation(name, anim.duplicate())
+				shared.add_animation(anim_name, anim.duplicate())
 
 	# assign shared animation player to Body nodes inside the instanced model
 	var bodies: Array = []
@@ -65,32 +65,45 @@ func setup_character_model(wrapper_node: Node) -> void:
 
 	# If we didn't copy any animations, try loading shared AnimationLibrary resources
 	# from `res://assets/characters/player/Shared/Animations` and attach them to `shared.libraries`.
-	if shared.get_animation_count() == 0:
-		var anim_dir = "res://assets/characters/player/Shared/Animations"
-		var dir = DirAccess.open(anim_dir)
-		if dir:
-			var libs = {}
-			var file_name = dir.get_next()
-			while file_name != "":
-				if file_name.to_lower().ends_with(".glb"):
-					var path = anim_dir + "/" + file_name
-					var res = ResourceLoader.load(path)
-					if res:
-						var key = file_name.get_basename()
-						# Map basename to gameplay canonical key if mapping exists
-						var mapped_key = key
-						var map_res = ResourceLoader.load("res://scripts/animation_map.gd")
-						if map_res and map_res.has_method("get_library_name_for"):
-							# invert animation_map to find matching library basename
-							var anim_module = load("res://scripts/animation_map.gd")
-							if anim_module:
-								for canon_key in anim_module.animation_map.keys():
-									if anim_module.animation_map[canon_key] == key:
-										mapped_key = canon_key
-										break
-						libs[mapped_key] = res
-				file_name = dir.get_next()
-			# merge into shared.libraries if any found
-			if libs.size() > 0:
-				for k in libs.keys():
-					shared.libraries[k] = libs[k]
+	# Always attempt to populate missing standard keys from GLB files
+	# This ensures that even if a character has unique animations, they still get the basic move set (Idle, Run, etc.)
+	if true:
+		print("SharedAnimationPlayer empty. Attempting to load from GLBs...")
+		var anim_dir = "res://assets/characters/player/Shared/Animations/"
+		var map_res = load("res://scripts/animation_map.gd")
+		if map_res:
+			var map_inst = map_res.new()
+			for key in map_inst.animation_map:
+				if shared.has_animation(key):
+					continue
+					
+				var filename = map_inst.animation_map[key] + ".glb"
+				var path = anim_dir + filename
+				
+				if not ResourceLoader.exists(path):
+					# print("Animation file missing: ", path)
+					continue
+					
+				var packed = ResourceLoader.load(path)
+				if packed and packed is PackedScene:
+					var temp = packed.instantiate()
+					# GLB animations are usually in an AnimationPlayer child
+					var ap = null
+					for child in temp.get_children():
+						if child is AnimationPlayer:
+							ap = child
+							break
+					
+					if ap:
+						var anim_list = ap.get_animation_list()
+						if anim_list.size() > 0:
+							# Usually just one animation, take the first one or one matching the file
+							var source_anim_name = anim_list[0]
+							var anim = ap.get_animation(source_anim_name)
+							if anim:
+								anim.loop_mode = Animation.LOOP_LINEAR if (key in ["Idle", "Run", "Walk_Forward", "Walk_Back", "Sprint"]) else Animation.LOOP_NONE
+								shared.add_animation(key, anim.duplicate())
+								print("Loaded animation: ", key, " from ", filename)
+					
+					temp.free()
+			map_inst.free()

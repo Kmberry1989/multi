@@ -1,7 +1,14 @@
-[gd_scene load_steps=4 format=3 uid="uid://bx7mq8t8hjn7q"]
+[gd_scene load_steps=5 format=3 uid="uid://bx7mq8t8hjn7q"]
 
 [ext_resource type="FontFile" uid="uid://diapabmalpcrj" path="res://assets/fonts/Kurland.ttf" id="1_font"]
 [ext_resource type="Script" uid="uid://wfj6b11wkwx2" path="res://scripts/main_menu_ui.gd" id="2_script"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_BtnBG"]
+bg_color = Color(0, 0, 0, 0.5)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
 
 [sub_resource type="StyleBoxLine" id="StyleBoxLine_npnbc"]
 color = Color(0, 0, 0, 0)
@@ -22,75 +29,55 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.0901961, 0.0901961, 0.0901961, 1)
+color = Color(0.0901961, 0.0901961, 0.0901961, 0)
 
-[node name="MainContainer" type="VBoxContainer" parent="."]
+[node name="TopContainer" type="VBoxContainer" parent="."]
 layout_mode = 1
-anchors_preset = 14
-anchor_top = 0.5
+anchors_preset = 10
 anchor_right = 1.0
-anchor_bottom = 0.5
-offset_top = -257.0
-offset_bottom = 257.0
+offset_top = 50.0
+offset_bottom = 200.0
 grow_horizontal = 2
-grow_vertical = 2
-theme_override_constants/separation = 50
-alignment = 1
-
-[node name="Label" type="Label" parent="MainContainer"]
-layout_mode = 2
-size_flags_horizontal = 6
-size_flags_vertical = 0
-theme_override_fonts/font = ExtResource("1_font")
-theme_override_font_sizes/font_size = 70
-text = "Multiplayer Template"
-
-[node name="MainMenu" type="VBoxContainer" parent="MainContainer"]
-layout_direction = 1
-layout_mode = 2
-size_flags_horizontal = 4
-size_flags_vertical = 4
 theme_override_constants/separation = 20
 alignment = 1
 
-[node name="HSeparator1" type="HSeparator" parent="MainContainer/MainMenu"]
-layout_mode = 2
-theme_override_constants/separation = 10
-theme_override_styles/separator = SubResource("StyleBoxLine_npnbc")
-
-[node name="Option1" type="HBoxContainer" parent="MainContainer/MainMenu"]
+[node name="CharacterSelector" type="OptionButton" parent="TopContainer"]
+custom_minimum_size = Vector2(400, 60)
 layout_mode = 2
 size_flags_horizontal = 4
-size_flags_vertical = 4
+theme_override_fonts/font = ExtResource("1_font")
+theme_override_font_sizes/font_size = 40
 alignment = 1
 
-[node name="Label" type="Label" parent="MainContainer/MainMenu/Option1"]
+[node name="NickInput" type="LineEdit" parent="TopContainer"]
+custom_minimum_size = Vector2(300, 50)
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_fonts/font = ExtResource("1_font")
-theme_override_font_sizes/font_size = 35
-text = "Nickname : "
-
-[node name="NickInput" type="LineEdit" parent="MainContainer/MainMenu/Option1"]
-layout_mode = 2
-theme_override_fonts/font = ExtResource("1_font")
-theme_override_font_sizes/font_size = 35
-placeholder_text = "YourNick"
+theme_override_font_sizes/font_size = 30
+placeholder_text = "Nickname"
 max_length = 20
-expand_to_text_length = true
-
-
-[node name="HSeparator2" type="HSeparator" parent="MainContainer/MainMenu"]
-layout_mode = 2
-theme_override_constants/separation = 30
-theme_override_styles/separator = SubResource("StyleBoxLine_npnbc")
-
-[node name="Buttons" type="HBoxContainer" parent="MainContainer/MainMenu"]
-layout_mode = 2
-theme_override_constants/separation = 30
 alignment = 1
 
-[node name="Host" type="Button" parent="MainContainer/MainMenu/Buttons"]
+[node name="BottomContainer" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -120.0
+offset_bottom = -40.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_constants/separation = 40
+alignment = 1
+
+[node name="HostPanel" type="PanelContainer" parent="BottomContainer"]
+custom_minimum_size = Vector2(150, 80)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_BtnBG")
+
+[node name="Host" type="Button" parent="BottomContainer/HostPanel"]
 layout_mode = 2
 theme_override_colors/font_hover_color = Color(0, 0.52549, 0, 1)
 theme_override_colors/font_pressed_color = Color(0, 0.52549, 0, 1)
@@ -99,7 +86,12 @@ theme_override_font_sizes/font_size = 35
 text = "HOST"
 flat = true
 
-[node name="Join" type="Button" parent="MainContainer/MainMenu/Buttons"]
+[node name="JoinPanel" type="PanelContainer" parent="BottomContainer"]
+custom_minimum_size = Vector2(150, 80)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_BtnBG")
+
+[node name="Join" type="Button" parent="BottomContainer/JoinPanel"]
 layout_mode = 2
 theme_override_colors/font_hover_color = Color(0, 0.525257, 0, 1)
 theme_override_colors/font_pressed_color = Color(0, 0.52549, 0, 1)
@@ -108,13 +100,12 @@ theme_override_font_sizes/font_size = 35
 text = "JOIN"
 flat = true
 
-[node name="Option4" type="HBoxContainer" parent="MainContainer/MainMenu"]
+[node name="QuitPanel" type="PanelContainer" parent="BottomContainer"]
+custom_minimum_size = Vector2(150, 80)
 layout_mode = 2
-size_flags_horizontal = 4
-size_flags_vertical = 4
-alignment = 1
+theme_override_styles/panel = SubResource("StyleBoxFlat_BtnBG")
 
-[node name="Quit" type="Button" parent="MainContainer/MainMenu/Option4"]
+[node name="Quit" type="Button" parent="BottomContainer/QuitPanel"]
 layout_mode = 2
 theme_override_colors/font_hover_color = Color(0.858807, 4.71681e-06, 1.15514e-06, 0.862745)
 theme_override_colors/font_pressed_color = Color(0.858824, 0, 0, 0.862745)
@@ -123,6 +114,6 @@ theme_override_font_sizes/font_size = 35
 text = "QUIT"
 flat = true
 
-[connection signal="pressed" from="MainContainer/MainMenu/Buttons/Host" to="." method="_on_host_pressed"]
-[connection signal="pressed" from="MainContainer/MainMenu/Buttons/Join" to="." method="_on_join_pressed"]
-[connection signal="pressed" from="MainContainer/MainMenu/Option4/Quit" to="." method="_on_quit_pressed"]
+[connection signal="pressed" from="BottomContainer/HostPanel/Host" to="." method="_on_host_pressed"]
+[connection signal="pressed" from="BottomContainer/JoinPanel/Join" to="." method="_on_join_pressed"]
+[connection signal="pressed" from="BottomContainer/QuitPanel/Quit" to="." method="_on_quit_pressed"]
