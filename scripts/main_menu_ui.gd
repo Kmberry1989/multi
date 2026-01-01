@@ -1,14 +1,12 @@
 extends Control
 class_name GameMainMenuUI
 
-signal host_pressed(nickname: String, skin: String, character_name: String)
-signal join_pressed(nickname: String, skin: String, address: String, character_name: String)
+signal host_pressed(skin: String, character_name: String)
+signal join_pressed(skin: String, address: String, character_name: String)
 signal quit_pressed
 signal character_changed(character_name: String)
 
 @onready var character_selector: OptionButton = $TopContainer/CharacterSelector
-@onready var nick_input: LineEdit = $TopContainer/NickInput
-
 var characters = ["Kyle", "Eric", "Donald", "Kristen", "Rochelle", "Vickie", "Connie", "Caleb", "Bethany", "Maia"]
 
 func _ready():
@@ -35,19 +33,15 @@ func _on_character_selected(index: int):
 
 
 func _on_host_pressed():
-	var nickname = nick_input.text.strip_edges()
-	# Simplified: single field for nickname. Use default skin.
 	var skin = "blue"
 	var idx = character_selector.selected
 	var character_name = "kyle"
 	if idx >= 0:
 		character_name = character_selector.get_item_text(idx).to_lower()
 		
-	host_pressed.emit(nickname, skin, character_name)
+	host_pressed.emit(skin, character_name)
 
 func _on_join_pressed():
-	var nickname = nick_input.text.strip_edges()
-	# Simplified: single field for nickname. Use default skin and local address.
 	var skin = "blue"
 	var address = "127.0.0.1"
 	var idx = character_selector.selected
@@ -55,7 +49,7 @@ func _on_join_pressed():
 	if idx >= 0:
 		character_name = character_selector.get_item_text(idx).to_lower()
 
-	join_pressed.emit(nickname, skin, address, character_name)
+	join_pressed.emit(skin, address, character_name)
 
 func _on_quit_pressed():
 	quit_pressed.emit()
@@ -68,9 +62,6 @@ func hide_menu():
 
 func is_menu_visible() -> bool:
 	return visible
-
-func get_nickname() -> String:
-	return nick_input.text.strip_edges()
 
 func get_skin() -> String:
 	return "blue"

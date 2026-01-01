@@ -14,12 +14,21 @@ var animation_map := {
     "Land": "Jumping Down",
     "Crouch": "Crouched Walking",
     "Crouch_Exit": "Crouch To Stand",
-    "Punch_A": "Punching (1)",
-    "Punch_Heavy": "Punching 2",
-    "Kick_A": "Kicking 3",
-    "Kick_Heavy": "Kicking 4",
+    # Light punch combo chain
+    "Punch_Combo1": "Punching (1)",
+    "Punch_Combo2": "Punching 2",
+    "Punch_Combo3": "Fist Fight A",
+    # Heavy punch on hold
+    "Punch_Heavy": "Hook Punch",
+    # Light kick combo chain
+    "Kick_Combo1": "Kicking 3",
+    "Kick_Combo2": "Kicking 4",
+    "Kick_Combo3": "Roundhouse Kick",
+    # Heavy kick on hold
+    "Kick_Heavy": "Drop Kick",
     "Fireball": "Fireball",
     "FlashKick": "Flying Bicycle Kick",
+    "Special_Charged": "Superhuman Choke Lift",
     "Block": "Blocking",
     "Dizzy": "Dizzy Idle",
     "GetUp": "Stand Up",

@@ -14,6 +14,8 @@ class_name GameDirector
 var chat_visible = false
 var inventory_visible = false
 var game_director: GameDirector
+var _is_paused: bool = false
+var _ai_spawned: bool = false
 
 var menu_camera: Camera3D
 var preview_character: Node3D
@@ -114,18 +116,20 @@ func _cleanup_menu_scene():
 func _on_player_connected(peer_id, player_info):
 	_add_player(peer_id, player_info)
 
-func _on_host_pressed(nickname: String, skin: String, character_name: String):
-	print("Debug: Host button pressed. Nick:", nickname, " Char:", character_name)
-	var err = Network.start_host(nickname, skin, character_name)
+func _on_host_pressed(skin: String, character_name: String):
+	print("Debug: Host button pressed. Char:", character_name)
+	main_menu.hide_menu()
+	var err = Network.start_host("", skin, character_name)
 	if err:
 		print("Error starting host: ", err)
 		game_director.request_state_change(GameDirector.State.LOBBY)
 	else:
 		game_director.request_state_change(GameDirector.State.BOARD_TURN)
 
-func _on_join_pressed(nickname: String, skin: String, address: String, character_name: String):
+func _on_join_pressed(skin: String, address: String, character_name: String):
 	print("Debug: Join button pressed. Address:", address)
-	var err = Network.join_game(nickname, skin, address, character_name)
+	main_menu.hide_menu()
+	var err = Network.join_game("", skin, address, character_name)
 	if err:
 		print("Error joining game: ", err)
 		game_director.request_state_change(GameDirector.State.LOBBY)
@@ -152,6 +156,8 @@ func _add_player(id: int, player_info : Dictionary):
 	else:
 		player.position = get_spawn_point()
 	players_container.add_child(player, true)
+	if player.has_signal("player_died"):
+		player.player_died.connect(_on_player_died)
 	
 	if id == multiplayer.get_unique_id():
 		_cleanup_menu_scene()
@@ -159,32 +165,19 @@ func _add_player(id: int, player_info : Dictionary):
 		# Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 
+	# Spawn AI opponents once after local player join (host only)
+	if not _ai_spawned and multiplayer.is_server():
+		_spawn_ai_opponents()
 
+	# Auto-assign a character model
+	var model_name = "kyle"
+	if player_info.has("character"):
+		model_name = player_info["character"]
 
-	if player is PlayerCharacter:
-		var nick = Network.players[id]["nick"]
-		player.nickname.text = nick
-
-		var skin_enum = player_info["skin"]
-		player.set_player_skin(skin_enum)
-
-		# Auto-assign a character model based on selection or fallback to nickname matching
-		var model_name = "kyle"
-		if player_info.has("character"):
-			model_name = player_info["character"]
-		else:
-			# Legacy fallback
-			var nick_lower = str(player_info.get("nick", "")).to_lower()
-			var known = ["kyle","eric","donald","kristen","rochelle","vickie"]
-			for character_name in known:
-				if nick_lower.find(character_name) != -1:
-					model_name = character_name
-					break
-
-		# instantiate a temporary switcher to set model
-		if CHARACTER_SWITCHER_SCRIPT:
-			var switcher = CHARACTER_SWITCHER_SCRIPT.new()
-			switcher.set_model(player, model_name)
+	# instantiate a temporary switcher to set model
+	if CHARACTER_SWITCHER_SCRIPT:
+		var switcher = CHARACTER_SWITCHER_SCRIPT.new()
+		switcher.set_model(player, model_name)
 
 func get_spawn_point() -> Vector3:
 	var spawn_point = Vector2.from_angle(randf() * 2 * PI) * 10 # spawn radius
@@ -248,14 +241,23 @@ func _input(event):
 		_debug_add_item()
 	elif event is InputEventKey and event.pressed and event.keycode == KEY_F2:
 		_debug_print_inventory()
+	elif event.is_action_pressed("pause"):
+		_toggle_pause()
+	elif event.is_action_pressed("camera_cycle"):
+		var local_player = _get_local_player()
+		if local_player and local_player.has_method("cycle_camera_preset"):
+			local_player.cycle_camera_preset()
+	elif event.is_action_pressed("target_cycle"):
+		var local_player = _get_local_player()
+		if local_player and local_player.has_method("cycle_target"):
+			local_player.cycle_target(_get_opponents_for(local_player))
 
 func _on_chat_message_sent(message_text: String) -> void:
 	var trimmed_message = message_text.strip_edges()
 	if trimmed_message == "":
 		return # do not send empty messages
 
-	var nick = Network.players[multiplayer.get_unique_id()]["nick"]
-	rpc("msg_rpc", nick, trimmed_message)
+	rpc("msg_rpc", "", trimmed_message)
 
 @rpc("any_peer", "call_local")
 func msg_rpc(nick, msg):
@@ -279,13 +281,18 @@ func toggle_inventory():
 func is_inventory_visible() -> bool:
 	return inventory_visible
 
-# Additional helper for testing
-func _notification(what):
-	if what == NOTIFICATION_READY:
-		print("Inventory System Controls:")
-		print("  B - Toggle inventory")
-		print("  F1 - Add random test item (debug)")
-		print("  F2 - Print inventory contents (debug)")
+func _toggle_pause():
+	_is_paused = !_is_paused
+	get_tree().paused = _is_paused
+	if _is_paused:
+		_print_controls()
+		print("Paused")
+	else:
+		print("Unpaused")
+
+func _print_controls():
+	# Reduced verbosity: print condensed controls once
+	print("Controls: Move WASD/LS, Jump Space/Cross, Sprint Shift/R2, Punch J/Square, Kick K/Circle, Special L/Triangle, Block Q/R1, Target T/L1, Camera C/R3, Pause P/Touchpad")
 
 func _on_inventory_closed():
 	inventory_visible = false
@@ -301,6 +308,52 @@ func _get_local_player() -> PlayerCharacter:
 	if players_container.has_node(str(local_player_id)):
 		return players_container.get_node(str(local_player_id)) as PlayerCharacter
 	return null
+
+func _get_opponents_for(player: PlayerCharacter) -> Array:
+	var opponents: Array = []
+	for child in players_container.get_children():
+		if child is PlayerCharacter and child != player:
+			if child._state != PlayerCharacter.CombatState.DEAD:
+				opponents.append(child)
+	return opponents
+
+func _spawn_ai_opponents():
+	_ai_spawned = true
+	var switcher = CHARACTER_SWITCHER_SCRIPT.new()
+	var available = switcher.characters.keys()
+	var taken: Array = []
+	for child in players_container.get_children():
+		if child is PlayerCharacter and child.body:
+			taken.append(child.body.name.to_lower())
+	for name in taken:
+		if name in available:
+			available.erase(name)
+	for character_name in available:
+		var ai = player_scene.instantiate()
+		ai.name = "AI_%s" % character_name
+		ai.position = get_spawn_point()
+		if ai.has_method("set_player_skin"):
+			ai.set_player_skin(PlayerCharacter.SkinColor.BLUE)
+		if ai.has_method("set_multiplayer_authority"):
+			ai.set_multiplayer_authority(1)
+		ai.is_ai = true
+		players_container.add_child(ai, true)
+		if CHARACTER_SWITCHER_SCRIPT:
+			var sw = CHARACTER_SWITCHER_SCRIPT.new()
+			sw.set_model(ai, character_name)
+		if ai.has_signal("player_died"):
+			ai.player_died.connect(_on_player_died)
+
+func _on_player_died(player):
+	_check_round_winner()
+
+func _check_round_winner():
+	var alive: Array = []
+	for child in players_container.get_children():
+		if child is PlayerCharacter and child._state != PlayerCharacter.CombatState.DEAD:
+			alive.append(child)
+	if alive.size() == 1:
+		print("Winner: ", alive[0].name)
 
 # Debug functions for testing inventory system
 func _debug_add_item():
@@ -358,7 +411,21 @@ func _unhandled_input(event):
 			Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 		else:
 			main_menu.show_menu()
-			
-	# Mouse capture logic is intentionally disabled
-	# if event is InputEventMouseButton and event.pressed:
-	# 	pass
+	elif event.is_action_pressed("toggle_chat"):
+		toggle_chat()
+	elif chat_visible and multiplayer_chat.message.has_focus():
+		if event is InputEventKey and event.keycode == KEY_ENTER and event.pressed:
+			multiplayer_chat.send_chat_message()
+			get_viewport().set_input_as_handled()
+	elif event.is_action_pressed("inventory"):
+		toggle_inventory()
+	elif event is InputEventKey and event.pressed and event.keycode == KEY_F1:
+		_debug_add_item()
+	elif event is InputEventKey and event.pressed and event.keycode == KEY_F2:
+		_debug_print_inventory()
+	elif event.is_action_pressed("pause"):
+		_toggle_pause()
+	elif event.is_action_pressed("camera_cycle"):
+		var local_player = _get_local_player()
+		if local_player and local_player.has_method("cycle_camera_preset"):
+			local_player.cycle_camera_preset()

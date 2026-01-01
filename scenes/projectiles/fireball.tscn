@@ -1,0 +1,27 @@
+[gd_scene load_steps=4 format=4]
+
+[ext_resource path="res://scripts/fireball.gd" type="Script" id=1]
+
+[sub_resource type="StandardMaterial3D" id=1_mtrl]
+albedo_color = Color(1, 0.4, 0.1, 1)
+emission_enabled = true
+emission = Color(1, 0.4, 0.1, 1)
+emission_energy_multiplier = 2.0
+
+[sub_resource type="SphereShape3D" id=2_shape]
+radius = 0.35
+
+[sub_resource type="SphereMesh" id=3_mesh]
+
+[node name="Fireball" type="Area3D"]
+script = ExtResource(1)
+collision_layer = 1
+collision_mask = 1
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource(2_shape)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = SubResource(3_mesh)
+surface_material_override/0 = SubResource(1_mtrl)
+scale = Vector3(0.5, 0.5, 0.5)

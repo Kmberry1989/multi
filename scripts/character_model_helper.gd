@@ -55,6 +55,15 @@ func _ensure_default_library(player: AnimationPlayer) -> AnimationLibrary:
 	player.add_animation_library("", lib)
 	return lib
 
+func _find_animation_player_recursive(node: Node) -> AnimationPlayer:
+	if node is AnimationPlayer:
+		return node
+	for child in node.get_children():
+		var found = _find_animation_player_recursive(child)
+		if found:
+			return found
+	return null
+
 func setup_character_model(wrapper_node: Node) -> void:
 	if not wrapper_node: return
 	var inst: Node = null
@@ -118,38 +127,46 @@ func setup_character_model(wrapper_node: Node) -> void:
 	for b in bodies:
 		b.animation_player = shared
 
-	# If we didn't copy any animations, try loading shared AnimationLibrary resources
-	# from `res://assets/characters/player/Shared/Animations` and attach them to `shared.libraries`.
-	# Always attempt to populate missing standard keys from GLB files
-	# This ensures that even if a character has unique animations, 
-	# they still get the basic move set (Idle, Run, etc.)
-	if true:
+	# Always try to populate missing standard animations from shared GLB files so every character
+	# has a baseline move set.
+	var had_anims := shared.get_animation_list().size() > 0
+	var loaded_any := false
+	if not had_anims:
 		print("SharedAnimationPlayer empty. Attempting to load from GLBs...")
-		var anim_dir = "res://assets/characters/player/Shared/Animations/"
-		var map_res = load("res://scripts/animation_map.gd")
-		if map_res:
-			var map_inst = map_res.new()
-			for key in map_inst.animation_map:
-				if shared.has_animation(key):
-					continue
-					
-				var filename = map_inst.animation_map[key] + ".glb"
-				var path = anim_dir + filename
+	var anim_dir = "res://assets/characters/player/Shared/Animations/"
+	var map_res = load("res://scripts/animation_map.gd")
+	if map_res:
+		var map_inst = map_res.new()
+		for key in map_inst.animation_map:
+			if shared.has_animation(key):
+				continue
 				
-				if not ResourceLoader.exists(path):
-					# print("Animation file missing: ", path)
-					continue
-					
-				var packed = ResourceLoader.load(path)
-				if packed and packed is PackedScene:
+			var filename = map_inst.animation_map[key] + ".glb"
+			var path = anim_dir + filename
+				
+			if not ResourceLoader.exists(path):
+				continue
+				
+			var packed = ResourceLoader.load(path)
+			if packed:
+				if packed is AnimationLibrary:
+					var anim_names = packed.get_animation_list()
+					for anim_name in anim_names:
+						var anim = packed.get_animation(anim_name)
+						if not anim:
+							continue
+						if key in ["Idle", "Run", "Walk_Forward", "Walk_Back", "Sprint"]:
+							anim.loop_mode = Animation.LOOP_LINEAR
+						else:
+							anim.loop_mode = Animation.LOOP_NONE
+						var retargeted_lib_anim = _retarget_animation_to_skeleton(anim, skeleton, inst)
+						shared_lib.add_animation(key, retargeted_lib_anim)
+						loaded_any = true
+						print("Loaded animation: ", key, " from ", filename, " (AnimationLibrary)")
+				elif packed is PackedScene:
 					var temp = packed.instantiate()
-					# GLB animations are usually in an AnimationPlayer child
-					var ap = null
-					for child in temp.get_children():
-						if child is AnimationPlayer:
-							ap = child
-							break
-					
+					var ap = _find_animation_player_recursive(temp)
+				
 					if ap:
 						var anim_list = ap.get_animation_list()
 						if anim_list.size() > 0:
@@ -164,7 +181,10 @@ func setup_character_model(wrapper_node: Node) -> void:
 									anim.loop_mode = Animation.LOOP_NONE
 								var retargeted_glb = _retarget_animation_to_skeleton(anim, skeleton, inst)
 								shared_lib.add_animation(key, retargeted_glb)
+								loaded_any = true
 								print("Loaded animation: ", key, " from ", filename)
 					
 					temp.free()
-			map_inst.free()
+		map_inst.free()
+	if not had_anims and not loaded_any:
+		push_warning("SharedAnimationPlayer still empty after attempting to load shared animations.")
