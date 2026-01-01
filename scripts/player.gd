@@ -131,8 +131,6 @@ func _physics_process(delta):
 			can_double_jump = false
 			body.play_jump_animation("Jump2")
 
-	velocity.y -= gravity * delta
-
 	_move()
 	move_and_slide()
 	body.animate(velocity)
