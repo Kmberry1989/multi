@@ -10,6 +10,7 @@ extends Node3D
 
 var chat_visible = false
 var inventory_visible = false
+var game_director: GameDirector
 
 var menu_camera: Camera3D
 var preview_character: Node3D
@@ -17,6 +18,7 @@ var preview_rotation_speed = 1.0
 
 const CHARACTER_SWITCHER_SCRIPT = preload("res://scripts/character_switcher.gd")
 const CONTROLS_UI_SCENE = preload("res://scenes/ui/controls_ui.tscn") # Scene confirmed to exist
+const GAME_DIRECTOR_SCRIPT = preload("res://scripts/game_director.gd")
 
 
 func _ready():
@@ -25,7 +27,6 @@ func _ready():
 		Network.start_host("", "")
 
 	multiplayer_chat.hide()
-	main_menu.show_menu()
 	multiplayer_chat.set_process_input(true)
 
 	main_menu.host_pressed.connect(_on_host_pressed)
@@ -41,6 +42,10 @@ func _ready():
 
 	Network.connect("player_connected", Callable(self, "_on_player_connected"))
 	multiplayer.peer_disconnected.connect(_remove_player)
+
+	game_director = _ensure_game_director()
+	game_director.state_changed.connect(_on_game_state_changed)
+	game_director.initialize_state(GameDirector.State.LOBBY)
 
 	_setup_menu_scene()
 
@@ -102,19 +107,21 @@ func _on_player_connected(peer_id, player_info):
 
 func _on_host_pressed(nickname: String, skin: String, character_name: String):
 	print("Debug: Host button pressed. Nick:", nickname, " Char:", character_name)
-	main_menu.hide_menu()
 	var err = Network.start_host(nickname, skin, character_name)
 	if err:
 		print("Error starting host: ", err)
-		main_menu.show_menu() # Re-show menu on failure
+		game_director.request_state_change(GameDirector.State.LOBBY)
+	else:
+		game_director.request_state_change(GameDirector.State.BOARD_TURN)
 
 func _on_join_pressed(nickname: String, skin: String, address: String, character_name: String):
 	print("Debug: Join button pressed. Address:", address)
-	main_menu.hide_menu()
 	var err = Network.join_game(nickname, skin, address, character_name)
 	if err:
 		print("Error joining game: ", err)
-		main_menu.show_menu()
+		game_director.request_state_change(GameDirector.State.LOBBY)
+	else:
+		game_director.request_state_change(GameDirector.State.BOARD_TURN)
 
 func _add_player(id: int, player_info : Dictionary):
 	print("Debug: _add_player called for ID: ", id)
@@ -285,6 +292,23 @@ func _debug_print_inventory():
 func _show_controls_ui():
 	var controls_ui = CONTROLS_UI_SCENE.instantiate()
 	add_child(controls_ui)
+
+func _ensure_game_director() -> GameDirector:
+	var existing = get_node_or_null("GameDirector")
+	if existing:
+		return existing as GameDirector
+
+	var director = GAME_DIRECTOR_SCRIPT.new()
+	director.name = "GameDirector"
+	add_child(director)
+	return director
+
+func _on_game_state_changed(new_state: int, _previous_state: int) -> void:
+	match new_state:
+		GameDirector.State.LOBBY:
+			main_menu.show_menu()
+		_:
+			main_menu.hide_menu()
 
 
 func _unhandled_input(event):
