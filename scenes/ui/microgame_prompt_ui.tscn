@@ -1,0 +1,94 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/microgame_prompt_ui.gd" id=1]
+
+[node name="MicrogamePromptUI" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource(1)
+
+[node name="PromptPanel" type="PanelContainer" parent="."]
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -220.0
+offset_top = 20.0
+offset_right = 220.0
+offset_bottom = 180.0
+
+[node name="MarginContainer" type="MarginContainer" parent="PromptPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="VBoxContainer" type="VBoxContainer" parent="PromptPanel/MarginContainer"]
+layout_mode = 2
+
+[node name="PromptLabel" type="Label" parent="PromptPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "Get ready!"
+horizontal_alignment = 1
+
+[node name="InstructionLabel" type="Label" parent="PromptPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = ""
+horizontal_alignment = 1
+
+[node name="TimerLabel" type="Label" parent="PromptPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "0.0"
+horizontal_alignment = 1
+
+[node name="TimerBar" type="ProgressBar" parent="PromptPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+max_value = 1.0
+value = 1.0
+
+[node name="SummaryPanel" type="PanelContainer" parent="."]
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -220.0
+offset_top = -90.0
+offset_right = 220.0
+offset_bottom = 90.0
+
+[node name="MarginContainer" type="MarginContainer" parent="SummaryPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="VBoxContainer" type="VBoxContainer" parent="SummaryPanel/MarginContainer"]
+layout_mode = 2
+
+[node name="SummaryLabel" type="Label" parent="SummaryPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "Round complete!"
+horizontal_alignment = 1
+
+[node name="SummaryScoreLabel" type="Label" parent="SummaryPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Score +0 | Total 0"
+horizontal_alignment = 1
+
+[node name="SummaryTimerLabel" type="Label" parent="SummaryPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Next round in 0.0"
+horizontal_alignment = 1
+
+[node name="SummaryTimerBar" type="ProgressBar" parent="SummaryPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+max_value = 1.0
+value = 1.0
