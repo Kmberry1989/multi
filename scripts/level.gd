@@ -3,13 +3,8 @@ extends Node3D
 
 @onready var players_container: Node3D = $PlayersContainer
 @onready var main_menu: GameMainMenuUI = $MainMenuUI
+@onready var hud_manager: HUDManager = $HUDManager
 @export var player_scene: PackedScene
-
-@onready var multiplayer_chat: GameMultiplayerChatUI = $MultiplayerChatUI
-@onready var inventory_ui: InventoryUI = $InventoryUI
-
-var chat_visible = false
-var inventory_visible = false
 
 var menu_camera: Camera3D
 var preview_character: Node3D
@@ -24,20 +19,23 @@ func _ready():
 		print("Dedicated server starting...")
 		Network.start_host("", "")
 
-	multiplayer_chat.hide()
+	hud_manager.hide_chat()
 	main_menu.show_menu()
-	multiplayer_chat.set_process_input(true)
+	var chat_ui = hud_manager.get_chat_ui()
+	if chat_ui:
+		chat_ui.set_process_input(true)
 
 	main_menu.host_pressed.connect(_on_host_pressed)
 	main_menu.join_pressed.connect(_on_join_pressed)
 	main_menu.quit_pressed.connect(_on_quit_pressed)
 	main_menu.character_changed.connect(_update_preview_model)
 
+	var inventory_ui = hud_manager.get_inventory_ui()
 	if inventory_ui:
 		inventory_ui.inventory_closed.connect(_on_inventory_closed)
 
-	if multiplayer_chat:
-		multiplayer_chat.message_sent.connect(_on_chat_message_sent)
+	if chat_ui:
+		chat_ui.message_sent.connect(_on_chat_message_sent)
 
 	Network.connect("player_connected", Callable(self, "_on_player_connected"))
 	multiplayer.peer_disconnected.connect(_remove_player)
@@ -181,19 +179,20 @@ func toggle_chat():
 	if main_menu.is_menu_visible():
 		return
 
-	multiplayer_chat.toggle_chat()
-	chat_visible = multiplayer_chat.is_chat_visible()
+	hud_manager.toggle_chat()
 
 func is_chat_visible() -> bool:
-	return multiplayer_chat.is_chat_visible()
+	return hud_manager.is_chat_visible()
 
 func _input(event):
 	if event.is_action_pressed("toggle_chat"):
 		toggle_chat()
-	elif chat_visible and multiplayer_chat.message.has_focus():
-		if event is InputEventKey and event.keycode == KEY_ENTER and event.pressed:
-			multiplayer_chat.send_chat_message()
-			get_viewport().set_input_as_handled()
+	elif hud_manager.is_chat_visible():
+		var chat_ui = hud_manager.get_chat_ui()
+		if chat_ui and chat_ui.message.has_focus():
+			if event is InputEventKey and event.keycode == KEY_ENTER and event.pressed:
+				chat_ui.send_chat_message()
+				get_viewport().set_input_as_handled()
 	elif event.is_action_pressed("inventory"):
 		toggle_inventory()
 	elif event is InputEventKey and event.pressed and event.keycode == KEY_F1:
@@ -211,7 +210,9 @@ func _on_chat_message_sent(message_text: String) -> void:
 
 @rpc("any_peer", "call_local")
 func msg_rpc(nick, msg):
-	multiplayer_chat.add_message(nick, msg)
+	var chat_ui = hud_manager.get_chat_ui()
+	if chat_ui:
+		chat_ui.add_message(nick, msg)
 
 # ---------- INVENTORY SYSTEM ----------
 func toggle_inventory():
@@ -222,14 +223,10 @@ func toggle_inventory():
 	if not local_player:
 		return
 
-	inventory_visible = !inventory_visible
-	if inventory_visible:
-		inventory_ui.open_inventory(local_player)
-	else:
-		inventory_ui.close_inventory()
+	hud_manager.toggle_inventory(local_player)
 
 func is_inventory_visible() -> bool:
-	return inventory_visible
+	return hud_manager.is_inventory_visible()
 
 # Additional helper for testing
 func _notification(what):
@@ -240,9 +237,10 @@ func _notification(what):
 		print("  F2 - Print inventory contents (debug)")
 
 func _on_inventory_closed():
-	inventory_visible = false
+	hud_manager.close_inventory()
 
 func update_local_inventory_display():
+	var inventory_ui = hud_manager.get_inventory_ui()
 	if inventory_ui:
 		# Always refresh if the UI exists, regardless of visibility
 		inventory_ui.refresh_display()
