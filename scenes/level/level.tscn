@@ -14,6 +14,9 @@
 [ext_resource type="Environment" path="res://addons/flowing-sky/templates/sky_environment.tres" id="12_flowingsky"]
 [ext_resource type="Script" uid="uid://coii18b6wsbaw" path="res://scripts/lens_flare/lens_flare.gd" id="13_lensflare"]
 [ext_resource type="Texture2D" uid="uid://bjf0fexfwgg8d" path="res://scripts/lens_flare/lensflare.png" id="14_flaretex"]
+[ext_resource type="PackedScene" uid="uid://d1y6ke20f6b50" path="res://scenes/board/board.tscn" id="15_board"]
+[ext_resource type="Script" uid="uid://c4q2hftksmwra" path="res://scripts/board/turn_manager.gd" id="16_turn_manager"]
+[ext_resource type="Script" uid="uid://d2lnac8b2w4xg" path="res://scripts/game_director.gd" id="17_game_director"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_r5xs5"]
 size = Vector3(90, 90, 90)
@@ -202,6 +205,16 @@ transform = Transform3D(0.853915, -0.12079505, 0.5061995, -0.14572856, 0.8782714
 spot_angle = 23.385069
 
 [node name="PlayersContainer" type="Node3D" parent="."]
+
+[node name="GameDirector" type="Node" parent="."]
+script = ExtResource("17_game_director")
+
+[node name="Board" parent="." instance=ExtResource("15_board")]
+
+[node name="TurnManager" type="Node" parent="."]
+script = ExtResource("16_turn_manager")
+board_manager_path = NodePath("../Board")
+game_director_path = NodePath("../GameDirector")
 
 [node name="MainMenuUI" parent="." instance=ExtResource("6_x9g3h")]
 visible = false
