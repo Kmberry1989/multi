@@ -1,0 +1,107 @@
+[gd_scene load_steps=2 format=3 uid="uid://dyl6o1ul1jtnc"]
+
+[ext_resource type="Script" path="res://scripts/lobby_ui.gd" id="1_lobby"]
+
+[node name="LobbyUI" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_lobby")
+
+[node name="Backdrop" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.45)
+
+[node name="Panel" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -350.0
+offset_top = -220.0
+offset_right = 350.0
+offset_bottom = 220.0
+
+[node name="Content" type="VBoxContainer" parent="Panel"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 16
+
+[node name="Title" type="Label" parent="Panel/Content"]
+layout_mode = 2
+text = "Lobby"
+horizontal_alignment = 1
+
+[node name="Columns" type="HBoxContainer" parent="Panel/Content"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 24
+
+[node name="PlayersColumn" type="VBoxContainer" parent="Panel/Content/Columns"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="PlayersTitle" type="Label" parent="Panel/Content/Columns/PlayersColumn"]
+layout_mode = 2
+text = "Players"
+
+[node name="PlayersList" type="VBoxContainer" parent="Panel/Content/Columns/PlayersColumn"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 6
+
+[node name="RulesColumn" type="VBoxContainer" parent="Panel/Content/Columns"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="RulesTitle" type="Label" parent="Panel/Content/Columns/RulesColumn"]
+layout_mode = 2
+text = "Match Rules"
+
+[node name="TurnsRule" type="Label" parent="Panel/Content/Columns/RulesColumn"]
+layout_mode = 2
+text = "Turns:"
+
+[node name="MinigameRule" type="Label" parent="Panel/Content/Columns/RulesColumn"]
+layout_mode = 2
+text = "Minigame Pool:"
+
+[node name="BrawlRule" type="Label" parent="Panel/Content/Columns/RulesColumn"]
+layout_mode = 2
+text = "Brawl:"
+
+[node name="KartRule" type="Label" parent="Panel/Content/Columns/RulesColumn"]
+layout_mode = 2
+text = "Kart:"
+
+[node name="Footer" type="HBoxContainer" parent="Panel/Content"]
+layout_mode = 2
+size_flags_horizontal = 3
+alignment = 1
+
+theme_override_constants/separation = 16
+
+[node name="ReadyButton" type="Button" parent="Panel/Content/Footer"]
+layout_mode = 2
+text = "Ready"
+toggle_mode = true
+
+[node name="StatusLabel" type="Label" parent="Panel/Content/Footer"]
+layout_mode = 2
+text = "Waiting for players..."

@@ -8,6 +8,7 @@
 [ext_resource type="Script" uid="uid://2juaclm8gc1n" path="res://addons/simplegrasstextured/grass.gd" id="5_tf2q7"]
 [ext_resource type="PackedScene" uid="uid://ccencq0lcd3ph" path="res://scenes/ui/multiplayer_chat_ui.tscn" id="5_x9g3h"]
 [ext_resource type="PackedScene" uid="uid://bx7mq8t8hjn7q" path="res://scenes/ui/main_menu_ui.tscn" id="6_x9g3h"]
+[ext_resource type="PackedScene" uid="uid://dyl6o1ul1jtnc" path="res://scenes/ui/lobby_ui.tscn" id="7_lobby"]
 [ext_resource type="Texture2D" uid="uid://cvgmb638wdwdm" path="res://assets/textures/grass.png" id="7_grass"]
 [ext_resource type="PackedScene" uid="uid://doagc03egi3se" path="res://assets/objects/rock1.glb" id="10_tf2q7"]
 [ext_resource type="PackedScene" uid="uid://6fi3u47sk8wl" path="res://assets/objects/tree2.glb" id="11_pe1ox"]
@@ -204,6 +205,9 @@ spot_angle = 23.385069
 [node name="PlayersContainer" type="Node3D" parent="."]
 
 [node name="MainMenuUI" parent="." instance=ExtResource("6_x9g3h")]
+visible = false
+
+[node name="LobbyUI" parent="." instance=ExtResource("7_lobby")]
 visible = false
 
 [node name="MultiplayerChatUI" parent="." instance=ExtResource("5_x9g3h")]

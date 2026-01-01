@@ -3,6 +3,7 @@ extends Node3D
 
 @onready var players_container: Node3D = $PlayersContainer
 @onready var main_menu: GameMainMenuUI = $MainMenuUI
+@onready var lobby_ui: LobbyUI = $LobbyUI
 @export var player_scene: PackedScene
 
 @onready var multiplayer_chat: GameMultiplayerChatUI = $MultiplayerChatUI
@@ -17,6 +18,15 @@ var preview_rotation_speed = 1.0
 
 const CHARACTER_SWITCHER_SCRIPT = preload("res://scripts/character_switcher.gd")
 const CONTROLS_UI_SCENE = preload("res://scenes/ui/controls_ui.tscn") # Scene confirmed to exist
+const LOBBY_RULES = {
+	"turns": 10,
+	"minigame_pool": "Default",
+	"brawl": true,
+	"kart": false
+}
+
+var ready_by_peer := {}
+var match_started = false
 
 
 func _ready():
@@ -32,6 +42,11 @@ func _ready():
 	main_menu.join_pressed.connect(_on_join_pressed)
 	main_menu.quit_pressed.connect(_on_quit_pressed)
 	main_menu.character_changed.connect(_update_preview_model)
+
+	if lobby_ui:
+		lobby_ui.hide()
+		lobby_ui.ready_toggled.connect(_on_lobby_ready_toggled)
+		lobby_ui.update_rules(LOBBY_RULES)
 
 	if inventory_ui:
 		inventory_ui.inventory_closed.connect(_on_inventory_closed)
@@ -98,7 +113,13 @@ func _cleanup_menu_scene():
 		preview_character = null
 
 func _on_player_connected(peer_id, player_info):
-	_add_player(peer_id, player_info)
+	ready_by_peer[peer_id] = false
+	_refresh_lobby()
+	if multiplayer.is_server():
+		_broadcast_lobby_state()
+
+	if match_started:
+		_add_player(peer_id, player_info)
 
 func _on_host_pressed(nickname: String, skin: String, character_name: String):
 	print("Debug: Host button pressed. Nick:", nickname, " Char:", character_name)
@@ -107,6 +128,8 @@ func _on_host_pressed(nickname: String, skin: String, character_name: String):
 	if err:
 		print("Error starting host: ", err)
 		main_menu.show_menu() # Re-show menu on failure
+		return
+	_show_lobby()
 
 func _on_join_pressed(nickname: String, skin: String, address: String, character_name: String):
 	print("Debug: Join button pressed. Address:", address)
@@ -115,10 +138,15 @@ func _on_join_pressed(nickname: String, skin: String, address: String, character
 	if err:
 		print("Error joining game: ", err)
 		main_menu.show_menu()
+		return
+	_show_lobby()
 
 func _add_player(id: int, player_info : Dictionary):
 	print("Debug: _add_player called for ID: ", id)
 	if DisplayServer.get_name() == "headless" and id == 1:
+		return
+
+	if not match_started:
 		return
 
 	if players_container.has_node(str(id)):
@@ -167,11 +195,15 @@ func get_spawn_point() -> Vector3:
 	return Vector3(spawn_point.x, 0, spawn_point.y)
 
 func _remove_player(id):
-	if not multiplayer.is_server() or not players_container.has_node(str(id)):
-		return
-	var player_node = players_container.get_node(str(id))
-	if player_node:
-		player_node.queue_free()
+	if multiplayer.is_server():
+		ready_by_peer.erase(id)
+		_broadcast_lobby_state()
+
+	if players_container.has_node(str(id)):
+		var player_node = players_container.get_node(str(id))
+		if player_node:
+			player_node.queue_free()
+	_refresh_lobby()
 
 func _on_quit_pressed() -> void:
 	get_tree().quit()
@@ -285,6 +317,78 @@ func _debug_print_inventory():
 func _show_controls_ui():
 	var controls_ui = CONTROLS_UI_SCENE.instantiate()
 	add_child(controls_ui)
+
+func _show_lobby():
+	if DisplayServer.get_name() == "headless":
+		return
+	if lobby_ui:
+		lobby_ui.show()
+		_refresh_lobby()
+
+func _refresh_lobby():
+	if not lobby_ui:
+		return
+	lobby_ui.update_players(Network.players, ready_by_peer)
+	var all_ready = _are_all_players_ready()
+	if all_ready:
+		lobby_ui.set_status("All players ready. Starting...")
+	else:
+		lobby_ui.set_status("Waiting for players to ready up...")
+	var local_ready = ready_by_peer.get(multiplayer.get_unique_id(), false)
+	lobby_ui.set_ready_state(local_ready)
+
+func _are_all_players_ready() -> bool:
+	if Network.players.is_empty():
+		return false
+	for id in Network.players.keys():
+		if not ready_by_peer.get(id, false):
+			return false
+	return true
+
+func _on_lobby_ready_toggled(is_ready: bool) -> void:
+	if multiplayer.is_server():
+		_set_player_ready(multiplayer.get_unique_id(), is_ready)
+	else:
+		request_ready_state.rpc_id(1, is_ready)
+
+@rpc("any_peer", "reliable")
+func request_ready_state(is_ready: bool) -> void:
+	if not multiplayer.is_server():
+		return
+	var peer_id = multiplayer.get_remote_sender_id()
+	_set_player_ready(peer_id, is_ready)
+
+func _set_player_ready(peer_id: int, is_ready: bool) -> void:
+	ready_by_peer[peer_id] = is_ready
+	_broadcast_lobby_state()
+	_check_start_conditions()
+
+func _broadcast_lobby_state() -> void:
+	_refresh_lobby()
+	if multiplayer.is_server():
+		lobby_state_sync_rpc.rpc(ready_by_peer)
+
+@rpc("authority", "reliable")
+func lobby_state_sync_rpc(ready_state: Dictionary) -> void:
+	ready_by_peer = ready_state.duplicate()
+	_refresh_lobby()
+
+func _check_start_conditions() -> void:
+	if match_started or not multiplayer.is_server():
+		return
+	if not _are_all_players_ready():
+		return
+	start_match_rpc.rpc()
+
+@rpc("authority", "call_local")
+func start_match_rpc() -> void:
+	if match_started:
+		return
+	match_started = true
+	if lobby_ui:
+		lobby_ui.hide()
+	for id in Network.players.keys():
+		_add_player(id, Network.players[id])
 
 
 func _unhandled_input(event):
