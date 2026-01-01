@@ -1,9 +1,12 @@
 extends Node3D
+class_name GameDirector
 # Force reload
 
 @onready var players_container: Node3D = $PlayersContainer
 @onready var main_menu: GameMainMenuUI = $MainMenuUI
 @export var player_scene: PackedScene
+@export var kart_scene: PackedScene
+@export var kart_track_scene: PackedScene
 
 @onready var multiplayer_chat: GameMultiplayerChatUI = $MultiplayerChatUI
 @onready var inventory_ui: InventoryUI = $InventoryUI
@@ -15,6 +18,11 @@ var game_director: GameDirector
 var menu_camera: Camera3D
 var preview_character: Node3D
 var preview_rotation_speed = 1.0
+
+enum GameMode { ON_FOOT, KART }
+@export var game_mode: GameMode = GameMode.ON_FOOT
+
+var current_track: Node3D
 
 const CHARACTER_SWITCHER_SCRIPT = preload("res://scripts/character_switcher.gd")
 const CONTROLS_UI_SCENE = preload("res://scenes/ui/controls_ui.tscn") # Scene confirmed to exist
@@ -48,6 +56,7 @@ func _ready():
 	game_director.initialize_state(GameDirector.State.LOBBY)
 
 	_setup_menu_scene()
+	_setup_kart_mode()
 
 func _process(delta):
 	if preview_character and is_instance_valid(preview_character):
@@ -131,9 +140,17 @@ func _add_player(id: int, player_info : Dictionary):
 	if players_container.has_node(str(id)):
 		return
 
-	var player = player_scene.instantiate()
+	var scene_to_spawn := _get_player_scene()
+	if scene_to_spawn == null:
+		push_warning("No player scene configured for mode: %s" % [game_mode])
+		return
+
+	var player = scene_to_spawn.instantiate()
 	player.name = str(id)
-	player.position = get_spawn_point()
+	if game_mode == GameMode.KART:
+		player.position = _get_kart_spawn_point(id)
+	else:
+		player.position = get_spawn_point()
 	players_container.add_child(player, true)
 	
 	if id == multiplayer.get_unique_id():
@@ -144,34 +161,58 @@ func _add_player(id: int, player_info : Dictionary):
 
 
 
+	if player is PlayerCharacter:
+		var nick = Network.players[id]["nick"]
+		player.nickname.text = nick
 
-	var nick = Network.players[id]["nick"]
-	player.nickname.text = nick
+		var skin_enum = player_info["skin"]
+		player.set_player_skin(skin_enum)
 
-	var skin_enum = player_info["skin"]
-	player.set_player_skin(skin_enum)
+		# Auto-assign a character model based on selection or fallback to nickname matching
+		var model_name = "kyle"
+		if player_info.has("character"):
+			model_name = player_info["character"]
+		else:
+			# Legacy fallback
+			var nick_lower = str(player_info.get("nick", "")).to_lower()
+			var known = ["kyle","eric","donald","kristen","rochelle","vickie"]
+			for character_name in known:
+				if nick_lower.find(character_name) != -1:
+					model_name = character_name
+					break
 
-	# Auto-assign a character model based on selection or fallback to nickname matching
-	var model_name = "kyle"
-	if player_info.has("character"):
-		model_name = player_info["character"]
-	else:
-		# Legacy fallback
-		var nick_lower = str(player_info.get("nick", "")).to_lower()
-		var known = ["kyle","eric","donald","kristen","rochelle","vickie"]
-		for character_name in known:
-			if nick_lower.find(character_name) != -1:
-				model_name = character_name
-				break
-
-	# instantiate a temporary switcher to set model
-	if CHARACTER_SWITCHER_SCRIPT:
-		var switcher = CHARACTER_SWITCHER_SCRIPT.new()
-		switcher.set_model(player, model_name)
+		# instantiate a temporary switcher to set model
+		if CHARACTER_SWITCHER_SCRIPT:
+			var switcher = CHARACTER_SWITCHER_SCRIPT.new()
+			switcher.set_model(player, model_name)
 
 func get_spawn_point() -> Vector3:
 	var spawn_point = Vector2.from_angle(randf() * 2 * PI) * 10 # spawn radius
 	return Vector3(spawn_point.x, 0, spawn_point.y)
+
+func _get_kart_spawn_point(id: int) -> Vector3:
+	if current_track:
+		var spawn_root = current_track.get_node_or_null("SpawnPoints")
+		if spawn_root and spawn_root.get_child_count() > 0:
+			var index = (id - 1) % spawn_root.get_child_count()
+			var marker = spawn_root.get_child(index)
+			if marker is Node3D:
+				return marker.global_position
+	return get_spawn_point()
+
+func _get_player_scene() -> PackedScene:
+	if game_mode == GameMode.KART:
+		return kart_scene
+	return player_scene
+
+func _setup_kart_mode() -> void:
+	if game_mode != GameMode.KART:
+		return
+	if kart_track_scene == null:
+		push_warning("Kart mode enabled without a track scene.")
+		return
+	current_track = kart_track_scene.instantiate()
+	add_child(current_track)
 
 func _remove_player(id):
 	if not multiplayer.is_server() or not players_container.has_node(str(id)):

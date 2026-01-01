@@ -1,0 +1,30 @@
+[gd_scene load_steps=4 format=4 uid="uid://cwfkb0m3yegc2"]
+
+[ext_resource type="Script" path="res://scripts/kart/kart_controller.gd" id="1_f5m2j"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_4vft0"]
+size = Vector3(1.6, 0.6, 2.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_e53t0"]
+size = Vector3(1.6, 0.6, 2.4)
+
+[node name="KartVehicle" type="RigidBody3D"]
+script = ExtResource("1_f5m2j")
+linear_damp = 0.6
+angular_damp = 1.2
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("BoxShape3D_4vft0")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = SubResource("BoxMesh_e53t0")
+
+[node name="CameraRig" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.25, 0)
+
+[node name="SpringArm3D" type="SpringArm3D" parent="CameraRig"]
+spring_length = 6.0
+collision_mask = 1
+
+[node name="Camera3D" type="Camera3D" parent="CameraRig/SpringArm3D"]
+transform = Transform3D(1, 0, 0, 0, 0.965926, 0.258819, 0, -0.258819, 0.965926, 0, 0, 0)

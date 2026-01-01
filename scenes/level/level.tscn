@@ -14,6 +14,8 @@
 [ext_resource type="Environment" path="res://addons/flowing-sky/templates/sky_environment.tres" id="12_flowingsky"]
 [ext_resource type="Script" uid="uid://coii18b6wsbaw" path="res://scripts/lens_flare/lens_flare.gd" id="13_lensflare"]
 [ext_resource type="Texture2D" uid="uid://bjf0fexfwgg8d" path="res://scripts/lens_flare/lensflare.png" id="14_flaretex"]
+[ext_resource type="PackedScene" uid="uid://cwfkb0m3yegc2" path="res://scenes/kart/kart_vehicle.tscn" id="15_kart"]
+[ext_resource type="PackedScene" uid="uid://c6ksgp5y1682a" path="res://scenes/kart/track_01.tscn" id="16_kart_track"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_r5xs5"]
 size = Vector3(90, 90, 90)
@@ -130,6 +132,8 @@ fog_enabled = true
 [node name="Level" type="Node3D"]
 script = ExtResource("1_e1sh7")
 player_scene = ExtResource("1_uvcbi")
+kart_scene = ExtResource("15_kart")
+kart_track_scene = ExtResource("16_kart_track")
 
 [node name="Environment" type="Node3D" parent="."]
 

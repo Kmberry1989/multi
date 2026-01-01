@@ -1,0 +1,36 @@
+[gd_scene load_steps=4 format=4 uid="uid://c6ksgp5y1682a"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_4lq3d"]
+size = Vector3(60, 1, 60)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_5l7xe"]
+size = Vector3(60, 1, 60)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_2qvhd"]
+albedo_color = Color(0.1, 0.1, 0.1, 1)
+
+[node name="Track01" type="Node3D"]
+
+[node name="Ground" type="StaticBody3D" parent="."]
+collision_layer = 2
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Ground"]
+mesh = SubResource("BoxMesh_4lq3d")
+surface_material_override/0 = SubResource("StandardMaterial3D_2qvhd")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Ground"]
+shape = SubResource("BoxShape3D_5l7xe")
+
+[node name="SpawnPoints" type="Node3D" parent="."]
+
+[node name="Spawn1" type="Marker3D" parent="SpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 1.0, 0)
+
+[node name="Spawn2" type="Marker3D" parent="SpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.0, 0)
+
+[node name="Spawn3" type="Marker3D" parent="SpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 1.0, 0)
+
+[node name="Spawn4" type="Marker3D" parent="SpawnPoints"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 1.0, 0)
