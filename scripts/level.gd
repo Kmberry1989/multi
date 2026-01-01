@@ -1,5 +1,4 @@
 extends Node3D
-class_name GameDirector
 # Force reload
 
 @onready var players_container: Node3D = $PlayersContainer

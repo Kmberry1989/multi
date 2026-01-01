@@ -527,12 +527,17 @@ func apply_damage(amount: float, direction: Vector3 = Vector3.ZERO, base_knockba
 	_state = CombatState.HITSTUN
 	_state_timer = max(HIT_STUN_LIGHT, min(HIT_STUN_HEAVY, knock * 0.05))
 	_hitlag_timer = min(0.35, 0.12 + amount * 0.004)
+	_play_hit_reaction(amount)
+
+func _play_hit_reaction(amount: float) -> void:
+	if not body:
+		return
 	if amount > 25:
-		body.play_attack("Fall", "Jump")
+		body.play_attack("Hit_Heavy", "Fall")
 	elif amount > 12:
-		body.play_attack("Dizzy", "Block")
+		body.play_attack("Hit_Medium", "Dizzy")
 	else:
-		body.play_attack("Block", "Idle")
+		body.play_attack("Hit_Light", "Block")
 
 func cycle_camera_preset() -> void:
 	if _camera_presets.size() == 0:
