@@ -6,10 +6,32 @@ const SPRINT_SPEED = 10.0
 const JUMP_VELOCITY = 10
 
 enum SkinColor { BLUE, YELLOW, GREEN, RED }
+enum Mode { ADVENTURE, BRAWL }
 
 @onready var nickname: Label3D = $PlayerNick/Nickname
+@onready var hurtbox: Area3D = $Hurtbox
+@onready var hitbox: Area3D = $Hitbox
 
 var player_inventory: PlayerInventory
+
+@export_category("Combat")
+@export var mode: Mode = Mode.ADVENTURE
+@export var is_cpu: bool = false
+@export var cpu_target_path: NodePath
+@export var max_health: float = 100.0
+@export var light_attack_damage: float = 8.0
+@export var heavy_attack_damage: float = 14.0
+@export var knockback_force: float = 6.0
+@export var heavy_knockback_force: float = 10.0
+@export var block_damage_multiplier: float = 0.4
+@export var block_knockback_multiplier: float = 0.5
+@export var dodge_impulse: float = 10.0
+@export var dodge_cooldown: float = 0.8
+@export var light_recovery: float = 0.4
+@export var heavy_recovery: float = 0.7
+@export var hitbox_active_time: float = 0.2
+@export var cpu_attack_range: float = 2.0
+@export var cpu_stop_distance: float = 1.1
 
 @export_category("Objects")
 @export var body: Node3D = null
@@ -58,6 +80,14 @@ var gravity = ProjectSettings.get_setting("physics/3d/default_gravity")
 
 var can_double_jump = true
 var has_double_jumped = false
+var health: float
+var _attack_cooldown := 0.0
+var _dodge_timer := 0.0
+var _hitbox_timer := 0.0
+var _current_attack_damage := 0.0
+var _current_knockback := 0.0
+var _hit_targets: Dictionary = {}
+var _block_active := false
 
 func _enter_tree():
 	set_multiplayer_authority(str(name).to_int())
@@ -78,6 +108,12 @@ func _ready():
 		switcher.queue_free()
 
 	find_model_meshes()
+	health = max_health
+
+	if hitbox:
+		hitbox.monitoring = false
+		hitbox.area_entered.connect(_on_hitbox_area_entered)
+
 	var is_local_player = is_multiplayer_authority()
 	var local_client_id = multiplayer.get_unique_id()
 
@@ -97,7 +133,8 @@ func _ready():
 			request_inventory_sync.rpc_id(1)
 
 func _physics_process(delta):
-	if not is_multiplayer_authority(): return
+	if not is_multiplayer_authority() and not is_cpu:
+		return
 
 	var current_scene = get_tree().get_current_scene()
 	if current_scene and is_on_floor():
@@ -113,6 +150,8 @@ func _physics_process(delta):
 		if should_freeze:
 			freeze()
 			return
+
+	_handle_combat(delta)
 
 	if is_on_floor():
 		can_double_jump = true
@@ -136,7 +175,8 @@ func _physics_process(delta):
 	body.animate(velocity)
 
 func _process(_delta):
-	if not is_multiplayer_authority(): return
+	if not is_multiplayer_authority() and not is_cpu:
+		return
 	_check_fall_and_respawn()
 
 func freeze():
@@ -148,10 +188,7 @@ func freeze():
 func _move() -> void:
 	var _input_direction: Vector2 = Vector2.ZERO
 	if is_multiplayer_authority():
-		_input_direction = Input.get_vector(
-			"move_left", "move_right",
-			"move_forward", "move_backward"
-			)
+		_input_direction = _get_move_input()
 
 	var _direction: Vector3 = transform.basis * Vector3(
 		_input_direction.x, 0, _input_direction.y
@@ -175,6 +212,121 @@ func is_running() -> bool:
 		return true
 	_current_speed = NORMAL_SPEED
 	return false
+
+func _get_move_input() -> Vector2:
+	if mode == Mode.BRAWL and is_cpu:
+		var target = _get_cpu_target()
+		if target:
+			var to_target = target.global_transform.origin - global_transform.origin
+			if to_target.length() <= cpu_stop_distance:
+				return Vector2.ZERO
+			return Vector2(to_target.x, to_target.z).normalized()
+
+	return Input.get_vector(
+		"move_left", "move_right",
+		"move_forward", "move_backward"
+	)
+
+func _handle_combat(delta: float) -> void:
+	if mode != Mode.BRAWL:
+		return
+
+	_attack_cooldown = max(0.0, _attack_cooldown - delta)
+	_dodge_timer = max(0.0, _dodge_timer - delta)
+	_hitbox_timer = max(0.0, _hitbox_timer - delta)
+
+	if _hitbox_timer == 0.0 and hitbox and hitbox.monitoring:
+		hitbox.monitoring = false
+
+	var light_attack = false
+	var heavy_attack = false
+	var block = false
+	var dodge = false
+
+	if is_cpu:
+		var target = _get_cpu_target()
+		if target:
+			var distance = global_transform.origin.distance_to(target.global_transform.origin)
+			light_attack = distance <= cpu_attack_range
+			block = distance <= cpu_stop_distance * 1.2 and randf() < 0.1
+			dodge = distance <= cpu_stop_distance * 0.9 and randf() < 0.05
+	else:
+		light_attack = Input.is_action_just_pressed("combat_light")
+		heavy_attack = Input.is_action_just_pressed("combat_heavy")
+		block = Input.is_action_pressed("combat_block")
+		dodge = Input.is_action_just_pressed("combat_dodge")
+
+	_block_active = block
+
+	if _attack_cooldown == 0.0:
+		if heavy_attack:
+			_start_attack(heavy_attack_damage, heavy_knockback_force, heavy_recovery)
+		elif light_attack:
+			_start_attack(light_attack_damage, knockback_force, light_recovery)
+
+	if dodge and _dodge_timer == 0.0:
+		_perform_dodge()
+
+func _start_attack(damage: float, knockback: float, recovery: float) -> void:
+	_attack_cooldown = recovery
+	_hitbox_timer = hitbox_active_time
+	_current_attack_damage = damage
+	_current_knockback = knockback
+	_hit_targets.clear()
+	if hitbox:
+		hitbox.monitoring = true
+
+func _perform_dodge() -> void:
+	_dodge_timer = dodge_cooldown
+	var dodge_direction = Vector3.ZERO
+	var move_input = _get_move_input()
+	if move_input.length() > 0.1:
+		dodge_direction = (transform.basis * Vector3(move_input.x, 0, move_input.y)).normalized()
+	else:
+		dodge_direction = -transform.basis.z.normalized()
+	velocity += dodge_direction * dodge_impulse
+
+func _on_hitbox_area_entered(area: Area3D) -> void:
+	if mode != Mode.BRAWL:
+		return
+	if area == hurtbox:
+		return
+
+	var target = area.get_parent()
+	if not target or not target.has_method("receive_hit"):
+		return
+	if _hit_targets.has(target):
+		return
+
+	_hit_targets[target] = true
+	var knockback_direction = (target.global_transform.origin - global_transform.origin).normalized()
+	target.receive_hit(_current_attack_damage, knockback_direction * _current_knockback, self)
+
+func receive_hit(damage: float, knockback: Vector3, _attacker: Node) -> void:
+	if mode != Mode.BRAWL:
+		return
+
+	if _block_active:
+		damage *= block_damage_multiplier
+		knockback *= block_knockback_multiplier
+
+	health = max(0.0, health - damage)
+	velocity += knockback
+
+	if health <= 0.0:
+		health = max_health
+		_respawn()
+
+func set_cpu_target(target: Node3D) -> void:
+	if target:
+		cpu_target_path = target.get_path()
+
+func _get_cpu_target() -> Node3D:
+	if cpu_target_path != NodePath(""):
+		var target = get_node_or_null(cpu_target_path)
+		if target and target is Node3D:
+			return target
+	return null
 
 func _check_fall_and_respawn():
 	if global_transform.origin.y < -15.0:
