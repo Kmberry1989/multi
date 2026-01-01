@@ -328,6 +328,8 @@ func _spawn_ai_opponents():
 	for name in taken:
 		if name in available:
 			available.erase(name)
+	if available.is_empty():
+		return
 	for character_name in available:
 		var ai = player_scene.instantiate()
 		ai.name = "AI_%s" % character_name

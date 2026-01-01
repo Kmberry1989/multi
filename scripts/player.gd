@@ -433,6 +433,8 @@ func _handle_combat_input(delta: float) -> void:
 		_special_holding = false
 
 func _play_punch(is_heavy: bool) -> void:
+	if body.attack_lock_timer > 0.0:
+		return
 	var now = Time.get_ticks_msec() / 1000.0
 	if is_heavy:
 		body.play_attack("Punch_Heavy", "Punch_Combo1")
@@ -454,6 +456,8 @@ func _play_punch(is_heavy: bool) -> void:
 	_last_punch_time = now
 
 func _play_kick(is_heavy: bool) -> void:
+	if body.attack_lock_timer > 0.0:
+		return
 	var now = Time.get_ticks_msec() / 1000.0
 	if is_heavy:
 		body.play_attack("Kick_Heavy", "Kick_Combo1")
