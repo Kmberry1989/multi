@@ -14,6 +14,7 @@ var inventory_visible = false
 var menu_camera: Camera3D
 var preview_character: Node3D
 var preview_rotation_speed = 1.0
+var selected_mode: String = "board"
 
 const CHARACTER_SWITCHER_SCRIPT = preload("res://scripts/character_switcher.gd")
 const CONTROLS_UI_SCENE = preload("res://scenes/ui/controls_ui.tscn") # Scene confirmed to exist
@@ -100,21 +101,35 @@ func _cleanup_menu_scene():
 func _on_player_connected(peer_id, player_info):
 	_add_player(peer_id, player_info)
 
-func _on_host_pressed(nickname: String, skin: String, character_name: String):
-	print("Debug: Host button pressed. Nick:", nickname, " Char:", character_name)
+func _on_host_pressed(nickname: String, skin: String, character_name: String, mode: String):
+	print("Debug: Host button pressed. Nick:", nickname, " Char:", character_name, " Mode:", mode)
 	main_menu.hide_menu()
+	_set_selected_mode(mode)
 	var err = Network.start_host(nickname, skin, character_name)
 	if err:
 		print("Error starting host: ", err)
 		main_menu.show_menu() # Re-show menu on failure
 
-func _on_join_pressed(nickname: String, skin: String, address: String, character_name: String):
-	print("Debug: Join button pressed. Address:", address)
+func _on_join_pressed(nickname: String, skin: String, address: String, character_name: String, mode: String):
+	print("Debug: Join button pressed. Address:", address, " Mode:", mode)
 	main_menu.hide_menu()
+	_set_selected_mode(mode)
 	var err = Network.join_game(nickname, skin, address, character_name)
 	if err:
 		print("Error joining game: ", err)
 		main_menu.show_menu()
+
+func _set_selected_mode(mode: String) -> void:
+	var normalized = mode.strip_edges().to_lower()
+	if normalized.is_empty():
+		normalized = "board"
+	selected_mode = normalized
+	match normalized:
+		"board", "brawl", "kart", "party mix":
+			print("Routing to mode: ", normalized)
+		_:
+			print("Unknown mode selected, defaulting to board: ", normalized)
+			selected_mode = "board"
 
 func _add_player(id: int, player_info : Dictionary):
 	print("Debug: _add_player called for ID: ", id)

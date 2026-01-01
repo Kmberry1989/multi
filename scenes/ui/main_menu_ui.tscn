@@ -36,7 +36,7 @@ layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
 offset_top = 50.0
-offset_bottom = 200.0
+offset_bottom = 340.0
 grow_horizontal = 2
 theme_override_constants/separation = 20
 alignment = 1
@@ -57,6 +57,32 @@ theme_override_fonts/font = ExtResource("1_font")
 theme_override_font_sizes/font_size = 30
 placeholder_text = "Nickname"
 max_length = 20
+alignment = 1
+
+[node name="ServerAddress" type="LineEdit" parent="TopContainer"]
+custom_minimum_size = Vector2(300, 50)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_fonts/font = ExtResource("1_font")
+theme_override_font_sizes/font_size = 26
+placeholder_text = "Server Address"
+text = "127.0.0.1"
+alignment = 1
+
+[node name="SkinSelector" type="OptionButton" parent="TopContainer"]
+custom_minimum_size = Vector2(300, 50)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_fonts/font = ExtResource("1_font")
+theme_override_font_sizes/font_size = 28
+alignment = 1
+
+[node name="ModeSelector" type="OptionButton" parent="TopContainer"]
+custom_minimum_size = Vector2(300, 50)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_fonts/font = ExtResource("1_font")
+theme_override_font_sizes/font_size = 28
 alignment = 1
 
 [node name="BottomContainer" type="HBoxContainer" parent="."]
