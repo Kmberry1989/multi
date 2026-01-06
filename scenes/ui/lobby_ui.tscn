@@ -1,0 +1,87 @@
+[gd_scene load_steps=2 format=4 uid="uid://dxr2pmeeyu2n1"]
+
+[ext_resource type="Script" path="res://scripts/lobby_ui.gd" id="1_lobby_script"]
+
+[node name="LobbyUI" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_lobby_script")
+
+[node name="Panel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Content" type="VBoxContainer" parent="Panel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 12
+
+[node name="Columns" type="HBoxContainer" parent="Panel/Content"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="PlayersColumn" type="VBoxContainer" parent="Panel/Content/Columns"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[node name="PlayersLabel" type="Label" parent="Panel/Content/Columns/PlayersColumn"]
+layout_mode = 2
+text = "Players"
+
+[node name="PlayersList" type="VBoxContainer" parent="Panel/Content/Columns/PlayersColumn"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="RulesColumn" type="VBoxContainer" parent="Panel/Content/Columns"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[node name="RulesLabel" type="Label" parent="Panel/Content/Columns/RulesColumn"]
+layout_mode = 2
+text = "Rules"
+
+[node name="TurnsRule" type="Label" parent="Panel/Content/Columns/RulesColumn"]
+layout_mode = 2
+text = "Turns: -"
+
+[node name="MinigameRule" type="Label" parent="Panel/Content/Columns/RulesColumn"]
+layout_mode = 2
+text = "Minigame Pool: -"
+
+[node name="BrawlRule" type="Label" parent="Panel/Content/Columns/RulesColumn"]
+layout_mode = 2
+text = "Brawl: Off"
+
+[node name="KartRule" type="Label" parent="Panel/Content/Columns/RulesColumn"]
+layout_mode = 2
+text = "Kart: Off"
+
+[node name="Footer" type="HBoxContainer" parent="Panel/Content"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="ReadyButton" type="Button" parent="Panel/Content/Footer"]
+layout_mode = 2
+toggle_mode = true
+text = "Ready"
+
+[node name="StatusLabel" type="Label" parent="Panel/Content/Footer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Waiting for players..."

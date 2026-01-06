@@ -324,9 +324,9 @@ func _spawn_ai_opponents():
 	for child in players_container.get_children():
 		if child is PlayerCharacter and child.body:
 			taken.append(child.body.name.to_lower())
-	for name in taken:
-		if name in available:
-			available.erase(name)
+	for taken_name in taken:
+		if taken_name in available:
+			available.erase(taken_name)
 	if available.is_empty():
 		return
 	for character_name in available:
@@ -345,7 +345,7 @@ func _spawn_ai_opponents():
 		if ai.has_signal("player_died"):
 			ai.player_died.connect(_on_player_died)
 
-func _on_player_died(player):
+func _on_player_died(_player):
 	_check_round_winner()
 
 func _check_round_winner():

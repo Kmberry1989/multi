@@ -1,0 +1,45 @@
+[gd_scene load_steps=3 format=4 uid="uid://d1y6ke20f6b50"]
+
+[ext_resource type="Script" path="res://scripts/board/board_manager.gd" id="1_5bkn0"]
+
+[sub_resource type="Curve3D" id="Curve3D_1"]
+
+[node name="Board" type="Node3D"]
+script = ExtResource("1_5bkn0")
+
+[node name="Path" type="Path3D" parent="."]
+curve = SubResource("Curve3D_1")
+
+[node name="Spaces" type="Node3D" parent="."]
+
+[node name="Space01" type="Marker3D" parent="Spaces"]
+position = Vector3(0, 0, 0)
+metadata/space_type = "bonus"
+
+[node name="Space02" type="Marker3D" parent="Spaces"]
+position = Vector3(2, 0, 0)
+metadata/space_type = "item"
+
+[node name="Space03" type="Marker3D" parent="Spaces"]
+position = Vector3(4, 0, 0)
+metadata/space_type = "minigame"
+
+[node name="Space04" type="Marker3D" parent="Spaces"]
+position = Vector3(4, 0, 2)
+metadata/space_type = "bonus"
+
+[node name="Space05" type="Marker3D" parent="Spaces"]
+position = Vector3(4, 0, 4)
+metadata/space_type = "item"
+
+[node name="Space06" type="Marker3D" parent="Spaces"]
+position = Vector3(2, 0, 4)
+metadata/space_type = "minigame"
+
+[node name="Space07" type="Marker3D" parent="Spaces"]
+position = Vector3(0, 0, 4)
+metadata/space_type = "bonus"
+
+[node name="Space08" type="Marker3D" parent="Spaces"]
+position = Vector3(0, 0, 2)
+metadata/space_type = "item"

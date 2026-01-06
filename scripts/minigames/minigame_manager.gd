@@ -1,5 +1,4 @@
 extends Node
-class_name MinigameManager
 
 signal minigame_started(minigame_name: String)
 signal minigame_finished(minigame_name: String, results: Dictionary)

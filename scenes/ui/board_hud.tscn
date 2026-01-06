@@ -1,0 +1,62 @@
+[gd_scene load_steps=2 format=4 uid="uid://cwh1ff53lma6o"]
+
+[ext_resource type="Script" path="res://scripts/ui/board_hud.gd" id="1_y7ewr"]
+
+[node name="BoardHUD" type="Control"]
+layout_mode = 3
+anchors_preset = 1
+anchor_left = 0.02
+anchor_top = 0.02
+anchor_right = 0.32
+anchor_bottom = 0.22
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 0.0
+offset_bottom = 0.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_y7ewr")
+
+[node name="Panel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 0.0
+offset_bottom = 0.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Margin" type="MarginContainer" parent="Panel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = -8.0
+offset_bottom = -8.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBox" type="VBoxContainer" parent="Panel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="RoundInfo" type="Label" parent="Panel/Margin/VBox"]
+layout_mode = 2
+text = "Round 1"
+
+[node name="TurnInfo" type="Label" parent="Panel/Margin/VBox"]
+layout_mode = 2
+text = "Turn: -"
+
+[node name="Status" type="Label" parent="Panel/Margin/VBox"]
+layout_mode = 2
+text = "Waiting to start..."
+
+[node name="RollButton" type="Button" parent="Panel/Margin/VBox"]
+layout_mode = 2
+text = "Roll Dice"
