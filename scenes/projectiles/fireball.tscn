@@ -25,3 +25,14 @@ shape = SubResource(2_shape)
 mesh = SubResource(3_mesh)
 surface_material_override/0 = SubResource(1_mtrl)
 scale = Vector3(0.5, 0.5, 0.5)
+
+[node name="DeepRayCast3D" type="DeepRayCast3D" parent="."]
+enabled = true
+activate_emission = false
+auto_forward = true
+forward_distance = 1.0
+collide_with_bodies = true
+collide_with_areas = false
+max_results = 1
+raycast_visible = false
+collision_mask = 1
