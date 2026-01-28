@@ -153,7 +153,8 @@ func _ready():
 		switcher.set_model(self, "kyle")
 		switcher.queue_free()
 
-	# Make sure the body controller script and shared animations are wired even for pre-placed scenes.
+	# Make sure the body controller script and shared animations are wired
+	# even for pre-placed scenes.
 	if body and not (body is RobotBodyController):
 		var body_script = load("res://scripts/3d_godot_robot.gd")
 		if body_script:
@@ -267,11 +268,12 @@ func _physics_process(delta):
 		_jump_pending = false
 		velocity.y -= gravity * delta
 
-		if not is_ai and can_double_jump and not has_double_jumped and Input.is_action_just_pressed("jump"):
-			velocity.y = JUMP_VELOCITY
-			has_double_jumped = true
-			can_double_jump = false
-			body.play_jump_animation("Jump2")
+		if not is_ai and can_double_jump and not has_double_jumped:
+			if Input.is_action_just_pressed("jump"):
+				velocity.y = JUMP_VELOCITY
+				has_double_jumped = true
+				can_double_jump = false
+				body.play_jump_animation("Jump2")
 
 	_handle_combat_input(delta)
 	_move(delta)
@@ -345,7 +347,8 @@ func is_running() -> bool:
 func _check_fall_and_respawn():
 	if _state == CombatState.DEAD:
 		return
-	if global_transform.origin.y < -20.0 or abs(global_transform.origin.x) > 35.0 or abs(global_transform.origin.z) > 35.0:
+	var origin = global_transform.origin
+	if origin.y < -20.0 or abs(origin.x) > 35.0 or abs(origin.z) > 35.0:
 		_handle_ko()
 
 func _respawn():
@@ -366,8 +369,11 @@ func _handle_ko():
 	_respawn()
 
 @rpc("any_peer", "reliable")
-func change_nick(new_nick: String):
+func change_nick(_new_nick: String):
 	pass
+	
+func is_dead() -> bool:
+	return _state == CombatState.DEAD
 
 func get_texture_from_name(skin_color: SkinColor) -> CompressedTexture2D:
 	match skin_color:
@@ -507,7 +513,12 @@ func get_health_fraction() -> float:
 func get_special_fraction() -> float:
 	return clamp(_special_meter / SPECIAL_MAX, 0.0, 1.0)
 
-func apply_damage(amount: float, direction: Vector3 = Vector3.ZERO, base_knockback: float = 6.0, scaling: float = 0.25) -> void:
+func apply_damage(
+	amount: float, 
+	direction: Vector3 = Vector3.ZERO, 
+	base_knockback: float = 6.0, 
+	scaling: float = 0.25
+) -> void:
 	if _state == CombatState.DEAD:
 		return
 	if _is_shielding and _state == CombatState.ALIVE:
@@ -629,7 +640,7 @@ func _spawn_fireball(charged: bool) -> void:
 
 func _ai_update(delta: float) -> void:
 	_ai_target_refresh -= delta
-	if _ai_target_refresh <= 0.0 or _current_target == null or (_current_target is PlayerCharacter and _current_target._state == CombatState.DEAD):
+	if _ai_target_refresh <= 0.0 or _current_target == null or (_current_target is PlayerCharacter and _current_target.is_dead()):
 		_current_target = _find_nearest_opponent()
 		_ai_target_refresh = 1.0
 
@@ -663,7 +674,7 @@ func _find_nearest_opponent() -> PlayerCharacter:
 	var best_d = INF
 	for child in get_parent().get_children():
 		if child is PlayerCharacter and child != self:
-			if child._state == CombatState.DEAD:
+			if child.is_dead():
 				continue
 			var d = global_transform.origin.distance_squared_to(child.global_transform.origin)
 			if d < best_d:

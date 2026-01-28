@@ -58,6 +58,7 @@ func _ready():
 
 	_setup_menu_scene()
 	_setup_kart_mode()
+	_setup_board_game()
 
 func _process(delta):
 	if preview_character and is_instance_valid(preview_character):
@@ -205,6 +206,27 @@ func _setup_kart_mode() -> void:
 		return
 	current_track = kart_track_scene.instantiate()
 	add_child(current_track)
+
+func _setup_board_game() -> void:
+	print("Debug: Setting up board game...")
+	# Try to find existing board controller
+	var board_controller = find_child("BoardGameController", true, false)
+	if not board_controller:
+		# Load board scene
+		var board_scene = load("res://scenes/board/board.tscn")
+		if board_scene:
+			print("Debug: Board scene loaded, instantiating...")
+			board_controller = board_scene.instantiate()
+			# Ensure it's named BoardGameController if the tscn root isn't
+			if not board_controller.name == "BoardGameController":
+				board_controller.name = "BoardGameController"
+			add_child(board_controller)
+			print("Debug: Board controller added to level")
+		else:
+			print("Error: Board scene not found at res://scenes/board/board.tscn")
+			return
+	
+	print("Debug: Board game setup complete")
 
 func _remove_player(id):
 	if not multiplayer.is_server() or not players_container.has_node(str(id)):
@@ -399,11 +421,38 @@ func _ensure_game_director() -> GameDirector:
 	return director
 
 func _on_game_state_changed(new_state: int, _previous_state: int) -> void:
+	var state_name = GameDirector.State.keys()[new_state] if new_state in range(GameDirector.State.size()) else "UNKNOWN"
+	print("GameDirector state changed to: %s (%d)" % [state_name, new_state])
+	
 	match new_state:
 		GameDirector.State.LOBBY:
+			print("  → Showing menu")
 			main_menu.show_menu()
-		_:
+			# Hide game UIs
+			if inventory_ui:
+				inventory_ui.close_inventory()
+		GameDirector.State.BOARD_TURN:
+			print("  → Board turn starting")
+			# Hide menu, board game handles its own UI
 			main_menu.hide_menu()
+			if inventory_ui:
+				inventory_ui.hide()
+		GameDirector.State.BRAWL:
+			print("  → Brawl mode starting")
+			main_menu.hide_menu()
+			# Combat mode
+		GameDirector.State.KART:
+			print("  → Kart mode starting")
+			main_menu.hide_menu()
+			# Kart racing mode
+		GameDirector.State.MINIGAME:
+			print("  → Minigame starting")
+			main_menu.hide_menu()
+			# Minigame running
+		GameDirector.State.RESULTS:
+			print("  → Results screen")
+			main_menu.hide_menu()
+			# Show leaderboard/results
 
 
 func _unhandled_input(event):

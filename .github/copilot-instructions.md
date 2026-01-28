@@ -2,42 +2,59 @@
 
 Purpose: help AI coding agents become immediately productive in this Godot 3D multiplayer template.
 
-1. Big picture
-- Godot 4.5 3D multiplayer template. Entry scene: `scenes/level/level.tscn` ([project.godot](project.godot#L1)).
-- Two autoloads provide core services: `Network` (`scripts/network.gd`) and `ItemDatabase` (`scripts/item_database.gd`) — both are singletons used across scenes ([project.godot](project.godot#L1)).
-- Server-authoritative design: server (peer id 1) owns authoritative game state (inventories, authoritative movement decisions). Clients request changes via RPCs and server validates and syncs state back.
+## 1. Big Picture Architecture
 
-2. Key runtime and developer workflows
-- Run in editor: open project in Godot and press F5 or use `Debug → Customize Run Instances` to enable multiple instances for local multiplayer testing ([README.md](README.md#L1)).
-- Dedicated (headless) server: execute `./run_headless_server.sh` (ensure `godot` in PATH and `chmod +x run_headless_server.sh`) — script calls `godot --headless --path .` ([run_headless_server.sh](run_headless_server.sh#L1)).
+- **Godot 4.5 3D multiplayer template** with entry scene [scenes/level/level.tscn](scenes/level/level.tscn)
+- **Two core autoloads** (singletons): [Network](scripts/network.gd) manages ENet connections; [ItemDatabase](scripts/item_database.gd) provides item lookups
+- **Server-authoritative design**: peer 1 (server) owns authoritative game state—inventories, movement decisions, state transitions. Clients request changes via RPCs; server validates, executes, and syncs back
+- **Multiple game modes** managed by [GameDirector](scripts/game_director.gd): LOBBY, BOARD_TURN, MINIGAME, RESULTS, BRAWL, KART
+- **10-player max** (configurable in [Network](scripts/network.gd): `MAX_PLAYERS = 10`)
 
-3. Networking and RPC conventions
-- ENet on port 8080: defaults in `scripts/network.gd` (`SERVER_PORT = 8080`, `MAX_PLAYERS = 10`) — host with `Network.start_host(...)`, join with `Network.join_game(...)` ([scripts/network.gd](scripts/network.gd#L1)).
-- Use Godot `@rpc(...)` with explicit modes. Examples: `@rpc("any_peer","reliable")` and `@rpc("any_peer","call_local","reliable")` used heavily in `scripts/player.gd` for inventory RPCs (e.g., `request_move_item`, `request_add_item`, `sync_inventory_to_owner`) ([scripts/player.gd](scripts/player.gd#L1)).
-- Authority mapping pattern: players set authority via `set_multiplayer_authority(str(name).to_int())` in `_enter_tree()` (node `name` is expected to equal the peer id). AI edits should preserve this pattern rather than changing authority logic without careful testing ([scripts/player.gd](scripts/player.gd#L1)).
-- Headless checks: code often guards UI/visual logic with `if DisplayServer.get_name() == "headless": return` — keep headless-safe changes in server code paths ([scripts/network.gd](scripts/network.gd#L1)).
+## 2. Developer Workflows
 
-4. Inventory & Item patterns
-- `ItemDatabase` is an autoload singleton used to look up items by id (`ItemDatabase.get_item("iron_sword")`) — changes to IDs or schemas must update usages across `player.gd`, `player_inventory.gd`, and UI scripts.
-- Inventory is server-authoritative: clients call `request_*` RPCs; server validates and then calls `sync_inventory_to_owner.rpc_id(owner_id, data)` to update owner — see `request_move_item`, `request_add_item`, and `request_remove_item` ([scripts/player.gd](scripts/player.gd#L1)).
+**Local multiplayer testing:**
+- Press **F5** to run; use `Debug → Customize Run Instances` to spawn multiple editor instances
+- **Dedicated headless server**: `./run_headless_server.sh` (requires `godot` in PATH, `chmod +x`)
 
-5. UI and scene conventions
-- Main scene: `scenes/level/level.tscn`. UI nodes often live under the current scene (e.g., `InventoryUI` node expected by player sync code). When updating UIs, prefer calling scene methods like `update_local_inventory_display()` when available.
- - Character models: scenes now support a `CharacterModel` child node to host external character scenes (example: `scenes/characters/brawler.tscn`). `player.gd` will search for `CharacterModel` first and fall back to the embedded `3DGodotRobot` node. Use `CharacterModel` when swapping unique models or reusing shared animations.
+**Debug shortcuts:** W/A/S/D move, Shift sprint, Space jump, Ctrl toggle chat, B toggle inventory, F1/F2 debug items
 
-6. Style & project-specific conventions
-- Node naming: some code expects player node `name` to be the numeric peer id. Preserve or explicitly migrate this behavior.
-- Server id 1 is treated as the authoritative server in RPC checks (many places compare to `1`).
-- Use existing signals: `Network` emits `player_connected` and `server_disconnected` — prefer reusing them for new features instead of duplicating event plumbing ([scripts/network.gd](scripts/network.gd#L1)).
+## 3. Networking & RPC Conventions
 
-7. Quick examples to reference when editing
-- Start a host: `Network.start_host(nickname, skin_name)` — see `scripts/network.gd`.
-- Join game: `Network.join_game(nickname, skin_name, address)` — default address `127.0.0.1:8080`.
-- Add starting items on player creation: `_add_starting_items()` uses `ItemDatabase.get_item("iron_sword")` and `ItemDatabase.get_item("health_potion")` ([scripts/player.gd](scripts/player.gd#L1)).
- - Character scenes: reusable character scenes live in `scenes/characters/*.tscn` (examples: `scenes/characters/kyle.tscn`, `scenes/characters/eric.tscn`). Use the `scripts/character_switcher.gd` helper to swap a player's `CharacterModel` at runtime.
+- **ENet, port 8080**: `Network.start_host(nick, skin, character)` and `Network.join_game(nick, skin, address, character)` create connections
+- **RPC patterns**: use `@rpc("any_peer","reliable")` or `@rpc("any_peer","call_local","reliable")`. Examples in [player.gd](scripts/player.gd): `request_move_item`, `request_add_item`, `sync_inventory_to_owner`
+- **Authority**: players set `set_multiplayer_authority(str(name).to_int())` in `_enter_tree()` — node name must equal peer id. Preserve this pattern; don't refactor lightly
+- **Headless safety**: guard UI/visual logic with `if DisplayServer.get_name() == "headless": return` — keep headless-safe in server paths
 
-8. Safety notes for AI edits
-- Avoid refactoring authority or networking message formats without test harnesses — small changes can break synchronization in subtle ways.
-- Preserve RPC signatures and reliability modifiers when changing network functions; breaking these will change runtime behavior across clients.
+## 4. Inventory & Items
 
-If anything here is unclear or you want me to emphasize other files (e.g., `scripts/inventory_ui.gd`, `scripts/network.gd`), tell me which areas to expand or merge. I'll iterate on the draft.
+- **[ItemDatabase](scripts/item_database.gd)** is a singleton: `ItemDatabase.get_item("iron_sword")` returns Item objects. Item IDs must be unique; changes ripple through [player.gd](scripts/player.gd), [player_inventory.gd](scripts/player_inventory.gd), UI
+- **Server-authoritative flow**: client calls `request_move_item(from, to)` RPC → server validates in `_on_request_move_item()` → server calls `sync_inventory_to_owner.rpc_id(owner_id, data)` to update client
+- **20-slot grid layout**, drag-and-drop supported
+
+## 5. Character & Model Conventions
+
+- **Character swapper**: [CharacterSwitcher](scripts/character_switcher.gd) holds a dict of character scenes (kyle, eric, donald, kristen, etc.)
+- **Player node structure**: players look for a `CharacterModel` child node first; fall back to embedded `3DGodotRobot` node if absent
+- **Runtime model swaps**: `CharacterSwitcher.set_model(player_node, "kyle")` replaces the `CharacterModel` child
+- **Available characters**: [scenes/characters/](scenes/characters/) (kyle.tscn, eric.tscn, donald.tscn, kristen.tscn, rochelle.tscn, vickie.tscn, connie.tscn, caleb.tscn, bethany.tscn, maia.tscn)
+
+## 6. Game States & Scene Structure
+
+- **Lobby**: main_menu_ui, lobby_ui handle authentication and host/join
+- **Level** ([scenes/level/level.tscn](scenes/level/level.tscn)): main play scene with player spawning, inventory UI, chat
+- **Minigames** ([scripts/minigame_manager.gd](scripts/minigame_manager.gd)): manage sequences, timers, state callbacks
+- **Board, Kart, Brawl** modes: each tied to a game state in [GameDirector](scripts/game_director.gd); spawn/manage specialized scenes
+
+## 7. Style & Conventions
+
+- **Server peer id = 1**: compare against `1` for server checks
+- **Signals over events**: [Network](scripts/network.gd) emits `player_connected` and `server_disconnected`; reuse them instead of creating duplicates
+- **@export**: use for tunable game params (see [GameDirector](scripts/game_director.gd): microgame_duration_min, interstitial_duration)
+- **Headless-aware**: avoid UI creation/calls in headless paths
+
+## 8. Critical Safety Notes
+
+- **Authority & sync are fragile**: changing RPC signatures or peer id mappings breaks client-server sync subtly. Test with multiple instances
+- **Preserve RPC reliability modes**: `reliable` vs `unreliable` affects network behavior; don't swap without testing
+- **Inventory schema changes**: update ItemDatabase, all references in player scripts, and UI displays in one pass
+- **State transitions**: use `GameDirector.request_state_change()` (client) or `_apply_state()` (server) to keep states synchronized

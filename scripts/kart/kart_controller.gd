@@ -34,7 +34,7 @@ func _physics_process(delta: float) -> void:
 	_apply_grip(delta)
 	_clamp_speed()
 
-func _apply_drive_forces(delta: float) -> void:
+func _apply_drive_forces(_delta: float) -> void:
 	if abs(_throttle_input) < 0.01:
 		return
 
@@ -53,9 +53,9 @@ func _apply_steering(_delta: float) -> void:
 	apply_torque(Vector3.UP * _steer_input * steer_torque * speed_factor)
 
 func _apply_grip(delta: float) -> void:
-	var basis = global_transform.basis
-	var forward = -basis.z
-	var right = basis.x
+	var local_basis = global_transform.basis
+	var forward = -local_basis.z
+	var right = local_basis.x
 	var forward_speed = linear_velocity.dot(forward)
 	var lateral_speed = linear_velocity.dot(right)
 

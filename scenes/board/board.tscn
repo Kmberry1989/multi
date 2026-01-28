@@ -1,6 +1,7 @@
-[gd_scene load_steps=3 format=4 uid="uid://d1y6ke20f6b50"]
+[gd_scene load_steps=4 format=4 uid="uid://d1y6ke20f6b50"]
 
 [ext_resource type="Script" path="res://scripts/board/board_manager.gd" id="1_5bkn0"]
+[ext_resource type="Script" path="res://scripts/board/turn_manager.gd" id="2_turn_manager"]
 
 [sub_resource type="Curve3D" id="Curve3D_1"]
 
@@ -43,3 +44,8 @@ metadata/space_type = "bonus"
 [node name="Space08" type="Marker3D" parent="Spaces"]
 position = Vector3(0, 0, 2)
 metadata/space_type = "item"
+
+[node name="TurnManager" type="Node" parent="."]
+script = ExtResource("2_turn_manager")
+board_manager_path = NodePath(".")
+game_director_path = NodePath("../../../GameDirector")

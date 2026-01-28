@@ -9,11 +9,11 @@ const LERP_VELOCITY: float = 0.15
 var attack_lock_timer: float = 0.0
 var _pending_attack: Dictionary = {}
 
-func _play_animation(name: String, fallback: String = "") -> void:
+func _play_animation(anim_name: String, fallback: String = "") -> void:
 	if not animation_player:
 		return
-	if animation_player.has_animation(name):
-		animation_player.play(name)
+	if animation_player.has_animation(anim_name):
+		animation_player.play(anim_name)
 		return
 	if fallback != "" and animation_player.has_animation(fallback):
 		animation_player.play(fallback)
@@ -68,12 +68,12 @@ func play_attack(anim: String, fallback: String = "") -> void:
 		return
 	_play_animation(anim, fallback)
 	if animation_player:
-		var len := 0.5
+		var anim_len := 0.5
 		if animation_player.has_animation(anim):
 			var a = animation_player.get_animation(anim)
 			if a:
-				len = a.length
-		attack_lock_timer = max(attack_lock_timer, len)
+				anim_len = a.length
+		attack_lock_timer = max(attack_lock_timer, anim_len)
 
 func tick_attack_lock(delta: float) -> void:
 	if attack_lock_timer > 0.0:

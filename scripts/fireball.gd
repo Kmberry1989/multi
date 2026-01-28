@@ -11,9 +11,9 @@ var _dir: Vector3 = Vector3.ZERO
 var _owner: Node = null
 var _collision_radius: float = 0.35
 
-func setup(owner: Node, charged: bool) -> void:
-	_owner = owner
-	_dir = -owner.global_transform.basis.z
+func setup(projectile_owner: Node, charged: bool) -> void:
+	_owner = projectile_owner
+	_dir = -projectile_owner.global_transform.basis.z
 	_dir.y = 0
 	_dir = _dir.normalized()
 	if charged:

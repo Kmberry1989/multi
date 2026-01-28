@@ -28,7 +28,11 @@ func _find_first_skeleton(node: Node) -> Skeleton3D:
 			return sk
 	return null
 
-func _retarget_animation_to_skeleton(anim: Animation, skeleton: Skeleton3D, root: Node) -> Animation:
+func _retarget_animation_to_skeleton(
+	anim: Animation, 
+	skeleton: Skeleton3D, 
+	root: Node
+) -> Animation:
 	if not anim:
 		return anim
 	if not skeleton or not root:
@@ -159,7 +163,9 @@ func setup_character_model(wrapper_node: Node) -> void:
 							anim.loop_mode = Animation.LOOP_LINEAR
 						else:
 							anim.loop_mode = Animation.LOOP_NONE
-						var retargeted_lib_anim = _retarget_animation_to_skeleton(anim, skeleton, inst)
+						var retargeted_lib_anim = _retarget_animation_to_skeleton(
+							anim, skeleton, inst
+						)
 						shared_lib.add_animation(key, retargeted_lib_anim)
 						loaded_any = true
 						print("Loaded animation: ", key, " from ", filename, " (AnimationLibrary)")
@@ -179,7 +185,9 @@ func setup_character_model(wrapper_node: Node) -> void:
 									anim.loop_mode = Animation.LOOP_LINEAR
 								else:
 									anim.loop_mode = Animation.LOOP_NONE
-								var retargeted_glb = _retarget_animation_to_skeleton(anim, skeleton, inst)
+								var retargeted_glb = _retarget_animation_to_skeleton(
+									anim, skeleton, inst
+								)
 								shared_lib.add_animation(key, retargeted_glb)
 								loaded_any = true
 								print("Loaded animation: ", key, " from ", filename)
@@ -187,4 +195,6 @@ func setup_character_model(wrapper_node: Node) -> void:
 					temp.free()
 		map_inst.free()
 	if not had_anims and not loaded_any:
-		push_warning("SharedAnimationPlayer still empty after attempting to load shared animations.")
+		push_warning(
+			"SharedAnimationPlayer still empty after attempting to load shared animations."
+		)

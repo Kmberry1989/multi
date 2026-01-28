@@ -93,7 +93,7 @@ func start_microgame_sequence(microgames: Array) -> void:
 		prompt_ui.show()
 	minigame_manager.start_microgame_sequence(microgames, true)
 
-func _on_microgame_started(index: int, microgame_data: Dictionary, duration: float) -> void:
+func _on_microgame_started(_index: int, microgame_data: Dictionary, duration: float) -> void:
 	if not prompt_ui:
 		return
 	prompt_ui.show_prompt(
@@ -102,7 +102,7 @@ func _on_microgame_started(index: int, microgame_data: Dictionary, duration: flo
 		duration
 	)
 
-func _on_microgame_finished(index: int, microgame_data: Dictionary, success: bool, score_delta: int, total_score: int) -> void:
+func _on_microgame_finished(index: int, _microgame_data: Dictionary, _success: bool, score_delta: int, total_score: int) -> void:
 	if prompt_ui:
 		prompt_ui.show_interstitial(index + 1, score_delta, total_score, interstitial_duration)
 
