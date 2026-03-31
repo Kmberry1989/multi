@@ -18,6 +18,11 @@ enum ItemType {
 	ARMOR,
 	CONSUMABLE,
 	TOOL,
+	SEED,
+	CROP,
+	FURNITURE,
+	MATERIAL,
+	GIFT,
 	MISC
 }
 

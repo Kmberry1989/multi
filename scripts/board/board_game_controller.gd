@@ -165,13 +165,10 @@ func end_board_game() -> void:
 	# Calculate winners based on board score
 	var scores: Array = []
 	for player_id in player_tokens:
-		var player = get_tree().get_first_child_in_group("players")
-		while player:
-			if int(player.name) == player_id:
-				var score = player.get_meta("board_score") if player.has_meta("board_score") else 0
-				scores.append({"player": player, "score": score})
-				break
-			player = player.get_next_sibling()
+		var player = _find_player_by_id(player_id)
+		if player:
+			var score = player.get_meta("board_score") if player.has_meta("board_score") else 0
+			scores.append({"player": player, "score": score})
 	
 	# Sort by score
 	scores.sort_custom(func(a, b): return a["score"] > b["score"])
@@ -187,13 +184,16 @@ func end_board_game() -> void:
 func get_leaderboard() -> Array:
 	var scores: Array = []
 	for player_id in player_tokens:
-		var player = get_tree().get_first_child_in_group("players")
-		while player:
-			if int(player.name) == player_id:
-				var score = player.get_meta("board_score") if player.has_meta("board_score") else 0
-				scores.append({"name": player.get_meta("player_name") if player.has_meta("player_name") else "Player", "score": score})
-				break
-			player = player.get_next_sibling()
+		var player = _find_player_by_id(player_id)
+		if player:
+			var score = player.get_meta("board_score") if player.has_meta("board_score") else 0
+			scores.append({"name": player.get_meta("player_name") if player.has_meta("player_name") else "Player", "score": score})
 	
 	scores.sort_custom(func(a, b): return a["score"] > b["score"])
 	return scores
+
+func _find_player_by_id(player_id: int) -> Node:
+	for player in get_tree().get_nodes_in_group("players"):
+		if int(player.name) == player_id:
+			return player
+	return null

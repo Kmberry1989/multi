@@ -55,8 +55,8 @@ func _apply_item_effect(player: Node3D, _effect: Dictionary) -> void:
 	if not player.is_in_group("players"):
 		return
 	
-	# Award random item to player
-	var items = ["health_potion", "iron_sword"]
+	# Award random town-friendly item so legacy board mode still works.
+	var items = ["turnip_seed", "wood_chair", "market_voucher"]
 	var random_item = items[randi() % items.size()]
 	
 	if player.has_method("request_add_item"):
@@ -94,19 +94,19 @@ func _request_space_effect(player_id: int, space_type: String) -> void:
 	if not multiplayer.is_server():
 		return
 	
-	var player = get_tree().get_first_child_in_group("players")
-	while player:
-		if str(player.name).to_int() == player_id:
-			apply_space_effect(player, space_type)
-			return
-		player = player.get_next_sibling()
+	var player = _find_player_by_id(player_id)
+	if player:
+		apply_space_effect(player, space_type)
 
 ## Sync space effect to all clients
 @rpc("authority", "reliable", "call_local")
 func _sync_space_effect(player_id: int, space_type: String, effect_data: Dictionary) -> void:
-	var player = get_tree().get_first_child_in_group("players")
-	while player:
+	var player = _find_player_by_id(player_id)
+	if player:
+		_apply_effect_local(player, space_type, effect_data)
+
+func _find_player_by_id(player_id: int) -> Node:
+	for player in get_tree().get_nodes_in_group("players"):
 		if str(player.name).to_int() == player_id:
-			_apply_effect_local(player, space_type, effect_data)
-			return
-		player = player.get_next_sibling()
+			return player
+	return null

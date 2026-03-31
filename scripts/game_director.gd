@@ -3,9 +3,12 @@ class_name GameDirector
 
 enum State {
 	LOBBY,
+	TOWN,
+	HOME_EDIT,
+	FESTIVAL_ACTIVITY,
+	RESULTS,
 	BOARD_TURN,
 	MINIGAME,
-	RESULTS,
 	BRAWL,
 	KART,
 }

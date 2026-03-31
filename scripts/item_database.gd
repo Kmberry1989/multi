@@ -2,7 +2,7 @@ extends Node
 
 var items: Dictionary = {}
 
-func _ready():
+func _ready() -> void:
 	_load_items()
 
 func get_item(item_id: String) -> Item:
@@ -14,82 +14,52 @@ func has_item(item_id: String) -> bool:
 func get_all_items() -> Dictionary:
 	return items
 
-func _load_items():
-	_create_sample_items()
+func _load_items() -> void:
+	items.clear()
+	_create_town_items()
 
-func _create_sample_items():
+func _create_town_items() -> void:
 	var placeholder_icon = load("res://icon.png")
 
-	# Basic sword
-	var iron_sword = Item.new()
-	iron_sword.id = "iron_sword"
-	iron_sword.name = "Iron Sword"
-	iron_sword.description = "A sturdy iron sword. Good for combat."
-	iron_sword.item_type = Item.ItemType.WEAPON
-	iron_sword.rarity = Item.ItemRarity.COMMON
-	iron_sword.stackable = false
-	iron_sword.value = 50
-	iron_sword.icon = placeholder_icon
-	items[iron_sword.id] = iron_sword
+	_add_item("turnip_seed", "Turnip Seeds", "A starter seed bag for your first veggie patch.", Item.ItemType.SEED, Item.ItemRarity.COMMON, true, 20, 12, placeholder_icon)
+	_add_item("pumpkin_seed", "Pumpkin Seeds", "Larger seeds that take a little longer to mature.", Item.ItemType.SEED, Item.ItemRarity.UNCOMMON, true, 20, 18, placeholder_icon)
+	_add_item("turnip", "Turnip", "A crisp garden turnip ready to cook or sell.", Item.ItemType.CROP, Item.ItemRarity.COMMON, true, 20, 20, placeholder_icon)
+	_add_item("pumpkin", "Pumpkin", "A hearty harvest crop for autumn meals and decor.", Item.ItemType.CROP, Item.ItemRarity.UNCOMMON, true, 20, 30, placeholder_icon)
+	_add_item("watering_can", "Watering Can", "Keeps your crops thriving between harvests.", Item.ItemType.TOOL, Item.ItemRarity.COMMON, false, 1, 40, placeholder_icon)
+	_add_item("wood_chair", "Wood Chair", "A simple chair for cozy town homes.", Item.ItemType.FURNITURE, Item.ItemRarity.COMMON, false, 1, 35, placeholder_icon)
+	_add_item("cozy_bed", "Cozy Bed", "A soft bed for afternoon naps and guest visits.", Item.ItemType.FURNITURE, Item.ItemRarity.UNCOMMON, false, 1, 90, placeholder_icon)
+	_add_item("garden_lamp", "Garden Lamp", "Warm lighting for a welcoming yard.", Item.ItemType.FURNITURE, Item.ItemRarity.UNCOMMON, false, 1, 60, placeholder_icon)
+	_add_item("wood_plank", "Wood Plank", "A decor material used for simple upgrades.", Item.ItemType.MATERIAL, Item.ItemRarity.COMMON, true, 30, 8, placeholder_icon)
+	_add_item("flower_gift", "Flower Gift", "A thoughtful gift for neighbors around town.", Item.ItemType.GIFT, Item.ItemRarity.COMMON, true, 10, 14, placeholder_icon)
+	_add_item("market_voucher", "Market Voucher", "A merchant token earned from fresh produce trades.", Item.ItemType.CONSUMABLE, Item.ItemRarity.UNCOMMON, true, 20, 45, placeholder_icon)
 
-	# Health potion
-	var health_potion = Item.new()
-	health_potion.id = "health_potion"
-	health_potion.name = "Health Potion"
-	health_potion.description = "Restores health when consumed."
-	health_potion.item_type = Item.ItemType.CONSUMABLE
-	health_potion.rarity = Item.ItemRarity.COMMON
-	health_potion.stackable = true
-	health_potion.max_stack = 10
-	health_potion.value = 25
-	health_potion.icon = placeholder_icon
-	items[health_potion.id] = health_potion
-
-	# Leather armor
-	var leather_armor = Item.new()
-	leather_armor.id = "leather_armor"
-	leather_armor.name = "Leather Armor"
-	leather_armor.description = "Basic protection made from leather."
-	leather_armor.item_type = Item.ItemType.ARMOR
-	leather_armor.rarity = Item.ItemRarity.UNCOMMON
-	leather_armor.stackable = false
-	leather_armor.value = 75
-	leather_armor.icon = placeholder_icon
-	items[leather_armor.id] = leather_armor
-
-	# Magic gem
-	var magic_gem = Item.new()
-	magic_gem.id = "magic_gem"
-	magic_gem.name = "Magic Gem"
-	magic_gem.description = "A mysterious gem that glows with inner light."
-	magic_gem.item_type = Item.ItemType.MISC
-	magic_gem.rarity = Item.ItemRarity.RARE
-	magic_gem.stackable = true
-	magic_gem.max_stack = 5
-	magic_gem.value = 200
-	magic_gem.icon = placeholder_icon
-	items[magic_gem.id] = magic_gem
-
-	# Pickaxe tool
-	var pickaxe = Item.new()
-	pickaxe.id = "iron_pickaxe"
-	pickaxe.name = "Iron Pickaxe"
-	pickaxe.description = "A mining tool for gathering resources."
-	pickaxe.item_type = Item.ItemType.TOOL
-	pickaxe.rarity = Item.ItemRarity.COMMON
-	pickaxe.stackable = false
-	pickaxe.value = 100
-	pickaxe.icon = placeholder_icon
-	items[pickaxe.id] = pickaxe
+func _add_item(
+	item_id: String,
+	item_name: String,
+	description: String,
+	item_type: Item.ItemType,
+	rarity: Item.ItemRarity,
+	stackable: bool,
+	max_stack: int,
+	value: int,
+	icon: Texture2D
+) -> void:
+	var item := Item.new()
+	item.id = item_id
+	item.name = item_name
+	item.description = description
+	item.item_type = item_type
+	item.rarity = rarity
+	item.stackable = stackable
+	item.max_stack = max_stack
+	item.value = value
+	item.icon = icon
+	items[item.id] = item
 
 func add_item_to_database(item: Item) -> bool:
 	if item.id.is_empty():
 		push_error("Cannot add item with empty ID to database")
 		return false
-
-	if items.has(item.id):
-		push_warning("Item with ID '" + item.id + "' already exists in database. Overwriting.")
-
 	items[item.id] = item
 	return true
 

@@ -16,6 +16,7 @@ signal inventory_closed
 func _ready():
 	slot_ui_scene = preload("res://scenes/ui/inventory_slot_ui.tscn")
 	grid_container.columns = 4
+	title_label.text = "Town Satchel"
 	close_button.pressed.connect(_on_close_pressed)
 	tooltip.visible = false
 	_create_slot_uis()
@@ -130,6 +131,11 @@ func _get_item_type_string(type: Item.ItemType) -> String:
 		Item.ItemType.ARMOR: return "Armor"
 		Item.ItemType.CONSUMABLE: return "Consumable"
 		Item.ItemType.TOOL: return "Tool"
+		Item.ItemType.SEED: return "Seed"
+		Item.ItemType.CROP: return "Crop"
+		Item.ItemType.FURNITURE: return "Furniture"
+		Item.ItemType.MATERIAL: return "Material"
+		Item.ItemType.GIFT: return "Gift"
 		Item.ItemType.MISC: return "Miscellaneous"
 		_: return "Unknown"
 
