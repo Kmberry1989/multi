@@ -1,4 +1,4 @@
-[gd_scene load_steps=23 format=4 uid="uid://dugaivbj1o66n"]
+[gd_scene format=4 uid="uid://dugaivbj1o66n"]
 
 [ext_resource type="Script" uid="uid://d0dgljwwl463n" path="res://scripts/level.gd" id="1_e1sh7"]
 [ext_resource type="PackedScene" uid="uid://cffjduipbb3s5" path="res://scenes/level/player.tscn" id="1_uvcbi"]
@@ -9,8 +9,6 @@
 [ext_resource type="PackedScene" uid="uid://ccencq0lcd3ph" path="res://scenes/ui/multiplayer_chat_ui.tscn" id="5_x9g3h"]
 [ext_resource type="PackedScene" uid="uid://bx7mq8t8hjn7q" path="res://scenes/ui/main_menu_ui.tscn" id="6_x9g3h"]
 [ext_resource type="Texture2D" uid="uid://cvgmb638wdwdm" path="res://assets/textures/grass.png" id="7_grass"]
-[ext_resource type="PackedScene" uid="uid://doagc03egi3se" path="res://assets/objects/rock1.glb" id="10_tf2q7"]
-[ext_resource type="PackedScene" uid="uid://6fi3u47sk8wl" path="res://assets/objects/tree2.glb" id="11_pe1ox"]
 [ext_resource type="Environment" path="res://addons/flowing-sky/templates/sky_environment.tres" id="12_flowingsky"]
 [ext_resource type="Script" uid="uid://coii18b6wsbaw" path="res://scripts/lens_flare/lens_flare.gd" id="13_lensflare"]
 [ext_resource type="Texture2D" uid="uid://bjf0fexfwgg8d" path="res://scripts/lens_flare/lensflare.png" id="14_flaretex"]
@@ -126,26 +124,24 @@ metadata/GodotVersion = "4.5.1-stable (official)"
 transform_format = 1
 mesh = SubResource("ArrayMesh_xv074")
 
-[sub_resource type="Environment" id="Environment_qb4jd"]
-fog_enabled = true
-
-[node name="Level" type="Node3D"]
+[node name="Level" type="Node3D" unique_id=1974691354]
 script = ExtResource("1_e1sh7")
 player_scene = ExtResource("1_uvcbi")
 kart_scene = ExtResource("15_kart")
 kart_track_scene = ExtResource("16_kart_track")
 
-[node name="Environment" type="Node3D" parent="."]
+[node name="Environment" type="Node3D" parent="." unique_id=1098999062]
 
-[node name="Floor" type="StaticBody3D" parent="Environment"]
+[node name="Floor" type="StaticBody3D" parent="Environment" unique_id=1417135067]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -45, 0)
 collision_layer = 2
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Environment/Floor"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Environment/Floor" unique_id=1466778443]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.06915283, 0.06397629, -0.02517128)
 mesh = SubResource("BoxMesh_r5xs5")
 surface_material_override/0 = SubResource("StandardMaterial3D_o02aj")
 
-[node name="SimpleGrassTextured" type="MultiMeshInstance3D" parent="Environment/Floor/MeshInstance3D"]
+[node name="SimpleGrassTextured" type="MultiMeshInstance3D" parent="Environment/Floor/MeshInstance3D" unique_id=678750321]
 multimesh = SubResource("MultiMesh_b7m21")
 script = ExtResource("5_tf2q7")
 texture_albedo = ExtResource("4_sytrn")
@@ -165,10 +161,10 @@ sgt_tool_shape = {
 metadata/_custom_type_script = "uid://2juaclm8gc1n"
 metadata/SimpleGrassTextured = "2.0.5"
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/Floor"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Environment/Floor" unique_id=2007022601]
 shape = SubResource("BoxShape3D_x3h1o")
 
-[node name="SimpleGrassTextured" type="MultiMeshInstance3D" parent="Environment/Floor"]
+[node name="SimpleGrassTextured" type="MultiMeshInstance3D" parent="Environment/Floor" unique_id=1733291164]
 multimesh = SubResource("MultiMesh_sytrn")
 script = ExtResource("5_tf2q7")
 texture_albedo = SubResource("CompressedTexture2D_vpf64")
@@ -188,54 +184,30 @@ sgt_tool_shape = {
 metadata/_custom_type_script = "uid://2juaclm8gc1n"
 metadata/SimpleGrassTextured = "2.0.5"
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="Environment"]
+[node name="WorldEnvironment" type="WorldEnvironment" parent="Environment" unique_id=1117402220]
 environment = ExtResource("12_flowingsky")
 
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="Environment"]
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="Environment" unique_id=1970540782]
 transform = Transform3D(1, 0, 0, 0, -0.5, 0.866025, 0, -0.866025, -0.5, 0, 4, 0)
 shadow_enabled = true
 shadow_blur = 0.5
 
-[node name="LensFlares" type="Node3D" parent="Environment"]
+[node name="LensFlares" type="Node3D" parent="Environment" unique_id=938978540]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 100, 0)
 script = ExtResource("13_lensflare")
 lensflare_sprite = ExtResource("14_flaretex")
 
-[node name="SpotLight3D" type="SpotLight3D" parent="Environment"]
+[node name="SpotLight3D" type="SpotLight3D" parent="Environment" unique_id=783930498]
 transform = Transform3D(0.853915, -0.12079505, 0.5061995, -0.14572856, 0.87827146, 0.45541465, -0.49959242, -0.4626531, 0.7323659, 0.85698056, 1.1919059, 1.9488785)
 spot_angle = 23.385069
 
-[node name="PlayersContainer" type="Node3D" parent="."]
+[node name="PlayersContainer" type="Node3D" parent="." unique_id=364848132]
 
-[node name="MainMenuUI" parent="." instance=ExtResource("6_x9g3h")]
+[node name="MainMenuUI" parent="." unique_id=703037596 instance=ExtResource("6_x9g3h")]
 visible = false
 
-[node name="MultiplayerChatUI" parent="." instance=ExtResource("5_x9g3h")]
+[node name="MultiplayerChatUI" parent="." unique_id=458160641 instance=ExtResource("5_x9g3h")]
 visible = false
 
-[node name="InventoryUI" parent="." instance=ExtResource("4_x8g2h")]
+[node name="InventoryUI" parent="." unique_id=660744029 instance=ExtResource("4_x8g2h")]
 visible = false
-
-[node name="rock1" parent="." instance=ExtResource("10_tf2q7")]
-transform = Transform3D(1, 0, 0, 0, 0.99984556, -0.01757456, 0, 0.01757456, 0.99984556, -2.2785401, 0.03188944, -0.68915606)
-
-[node name="tree2" parent="." instance=ExtResource("11_pe1ox")]
-transform = Transform3D(4.759507, 0, -4.68822, 0, 12.901858, 0, 6.1370254, 0, 3.635901, -2.9172182, 0.14468443, 0.95591354)
-
-[node name="tree3" parent="." instance=ExtResource("11_pe1ox")]
-transform = Transform3D(2.850407, 0, 5.51885, 0, 12.901857, 0, -7.2243466, 0, 2.1774945, -3.8486903, -0.052924752, -7.3991184)
-
-[node name="tree4" parent="." instance=ExtResource("11_pe1ox")]
-transform = Transform3D(2.172786, 0, 9.468262, 0, 12.901859, 0, -8.179145, 0, 2.5152402, 5.5433383, -0.052924752, -4.6154375)
-
-[node name="rock2" parent="." instance=ExtResource("10_tf2q7")]
-transform = Transform3D(0.91904604, 0, -0.39415035, 0, 1, 0, 0.39415035, 0, 0.91904604, -1.0559449, -0.08344555, -3.9772358)
-
-[node name="tree5" parent="." instance=ExtResource("11_pe1ox")]
-transform = Transform3D(4.0961933, 0.025697539, -5.0405645, -0.12742738, 12.899728, -0.046525, 6.597042, 0.233213, 3.1288548, -0.20287037, -0.16825974, -10.754328)
-
-[node name="tree6" parent="." instance=ExtResource("11_pe1ox")]
-transform = Transform3D(0.71913636, 0, 5.9074006, 0, 12.901855, 0, -7.732976, 0, 0.54936457, -3.6257353, -0.16825974, -1.6423302)
-
-[node name="tree7" parent="." instance=ExtResource("11_pe1ox")]
-transform = Transform3D(-7.467302, 0, 4.6099625, 0, 12.901863, 0, -3.9823096, 0, -8.644228, 0.44555688, -0.16825974, -4.5452805)

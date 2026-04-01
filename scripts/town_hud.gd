@@ -33,7 +33,7 @@ func _ready() -> void:
 	root.add_child(_plot_label)
 
 	_hint_label = Label.new()
-	_hint_label.text = "J interact  K edit/place  L garden  Q emote  B inventory  Ctrl chat"
+	_hint_label.text = "Touch HUD: move left, drag right to look, tap buttons to interact"
 	root.add_child(_hint_label)
 
 	_message_label = Label.new()

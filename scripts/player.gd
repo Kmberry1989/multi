@@ -1,8 +1,6 @@
 extends CharacterBody3D
 class_name PlayerCharacter
 
-signal player_died(player)
-
 const NORMAL_SPEED := 4.6
 const SPRINT_SPEED := 7.2
 const JUMP_VELOCITY := 7.8
@@ -41,7 +39,10 @@ var _is_running := false
 var _placement_rotation := 0.0
 var _emote_label: Label3D
 var _emote_timer := 0.0
-var gravity := ProjectSettings.get_setting("physics/3d/default_gravity")
+var gravity: float = float(ProjectSettings.get_setting("physics/3d/default_gravity"))
+var _touch_move_input := Vector2.ZERO
+var _touch_pressed_actions: Dictionary = {}
+var _touch_just_pressed_actions: Dictionary = {}
 
 var _bottom_mesh: MeshInstance3D
 var _chest_mesh: MeshInstance3D
@@ -62,7 +63,11 @@ func _ready() -> void:
 	_setup_identity_visuals()
 	_setup_emote_label()
 
-	if is_multiplayer_authority() or multiplayer.is_server() or not multiplayer.has_multiplayer_peer():
+	if (
+		is_multiplayer_authority()
+		or multiplayer.is_server()
+		or not multiplayer.has_multiplayer_peer()
+	):
 		player_inventory = PlayerInventory.new()
 		_add_starting_items()
 	else:
@@ -84,10 +89,13 @@ func _physics_process(delta: float) -> void:
 
 	_handle_actions()
 	_handle_movement(delta)
+	_touch_just_pressed_actions.clear()
 
 func _setup_camera() -> void:
 	if _spring_arm_offset:
-		_spring_arm = _spring_arm_offset.get_node_or_null("SpringArm3D") as SpringArm3D
+		_spring_arm = (
+			_spring_arm_offset.get_node_or_null("SpringArm3D") as SpringArm3D
+		)
 	var cam := get_node_or_null("SpringArmOffset/SpringArm3D/Camera3D")
 	if cam:
 		cam.current = is_multiplayer_authority() and not is_ai
@@ -128,20 +136,29 @@ func _setup_emote_label() -> void:
 	_emote_label.visible = false
 
 func _handle_movement(delta: float) -> void:
-	var input_dir := Input.get_vector("move_left", "move_right", "move_forward", "move_backward")
+	var keyboard_input := Input.get_vector(
+		"move_left", "move_right", "move_forward", "move_backward"
+	)
+	var input_dir := keyboard_input + _touch_move_input
+	if input_dir.length() > 1.0:
+		input_dir = input_dir.normalized()
 	var desired_velocity := Vector3.ZERO
 	if input_dir.length() > 0.0:
-		var basis := _spring_arm_offset.global_transform.basis if _spring_arm_offset else global_transform.basis
-		var forward := -basis.z
+		var move_basis := (
+			_spring_arm_offset.global_transform.basis
+			if _spring_arm_offset
+			else global_transform.basis
+		)
+		var forward := -move_basis.z
 		forward.y = 0.0
 		forward = forward.normalized()
-		var right := basis.x
+		var right := move_basis.x
 		right.y = 0.0
 		right = right.normalized()
 		desired_velocity = (right * input_dir.x) + (forward * input_dir.y)
 		desired_velocity = desired_velocity.normalized()
 
-	_is_running = Input.is_action_pressed("shift")
+	_is_running = _is_action_pressed_combined("shift")
 	var target_speed := SPRINT_SPEED if _is_running else NORMAL_SPEED
 	var horizontal_velocity := Vector3(velocity.x, 0.0, velocity.z)
 	var target_horizontal := desired_velocity * target_speed
@@ -152,7 +169,7 @@ func _handle_movement(delta: float) -> void:
 
 	if not is_on_floor():
 		velocity.y -= gravity * delta
-	elif Input.is_action_just_pressed("jump"):
+	elif _is_action_just_pressed_combined("jump"):
 		velocity.y = JUMP_VELOCITY
 		if body and body.has_method("play_jump_animation"):
 			body.play_jump_animation("Jump")
@@ -160,7 +177,10 @@ func _handle_movement(delta: float) -> void:
 	move_and_slide()
 
 	if body and body.has_method("apply_rotation"):
-		body.apply_rotation(horizontal_velocity if desired_velocity != Vector3.ZERO else Vector3(0.0, 0.0, -1.0))
+		var facing_velocity := horizontal_velocity
+		if desired_velocity == Vector3.ZERO:
+			facing_velocity = Vector3(0.0, 0.0, -1.0)
+		body.apply_rotation(facing_velocity)
 	if body and body.has_method("animate"):
 		body.animate(velocity)
 
@@ -169,25 +189,47 @@ func _handle_actions() -> void:
 	if town_manager == null:
 		return
 
-	if Input.is_action_just_pressed("light_punch"):
+	if _is_action_just_pressed_combined("light_punch"):
 		if town_manager.is_local_home_edit_enabled():
-			var object_id := town_manager.get_nearest_owned_object_id(profile_id, global_position)
+			var object_id := town_manager.get_nearest_owned_object_id(
+				profile_id, global_position
+			)
 			if object_id != "":
 				town_manager.request_remove_furniture.rpc_id(1, object_id)
 				return
 		town_manager.request_interact.rpc_id(1)
 
-	if Input.is_action_just_pressed("light_kick"):
-		var target_pos := town_manager.get_snap_position_for_player(profile_id, global_position, -global_transform.basis.z, _edit_zone())
+	if _is_action_just_pressed_combined("light_kick"):
+		var target_pos := town_manager.get_snap_position_for_player(
+			profile_id,
+			global_position,
+			-global_transform.basis.z,
+			_edit_zone()
+		)
 		if town_manager.is_local_home_edit_enabled():
-			var object_id := town_manager.get_nearest_owned_object_id(profile_id, global_position)
+			var object_id := town_manager.get_nearest_owned_object_id(
+				profile_id,
+				global_position
+			)
 			if object_id != "":
-				town_manager.request_move_furniture.rpc_id(1, object_id, target_pos, _placement_rotation, _edit_zone())
+				town_manager.request_move_furniture.rpc_id(
+					1,
+					object_id,
+					target_pos,
+					_placement_rotation,
+					_edit_zone()
+				)
 			else:
 				var item_id := town_manager.get_first_placeable_item(profile_id)
-				town_manager.request_place_furniture.rpc_id(1, item_id, target_pos, _placement_rotation, _edit_zone())
+				town_manager.request_place_furniture.rpc_id(
+					1,
+					item_id,
+					target_pos,
+					_placement_rotation,
+					_edit_zone()
+				)
 
-	if Input.is_action_just_pressed("special_attack"):
+	if _is_action_just_pressed_combined("special_attack"):
 		var crop_id := town_manager.get_nearest_crop_id(profile_id, global_position)
 		if crop_id != "":
 			if town_manager.is_crop_ready(crop_id):
@@ -196,19 +238,27 @@ func _handle_actions() -> void:
 				town_manager.request_water_crop.rpc_id(1, crop_id)
 		else:
 			var seed_id := town_manager.get_first_seed_item(profile_id)
-			var seed_target := town_manager.get_snap_position_for_player(profile_id, global_position, -global_transform.basis.z, "yard")
+			var seed_target := town_manager.get_snap_position_for_player(
+				profile_id,
+				global_position,
+				-global_transform.basis.z,
+				"yard"
+			)
 			town_manager.request_plant_seed.rpc_id(1, seed_id, seed_target)
 
-	if Input.is_action_just_pressed("block"):
+	if _is_action_just_pressed_combined("block"):
 		if multiplayer.has_multiplayer_peer():
 			show_emote.rpc("Heart")
 		else:
 			show_emote("Heart")
 
-	if Input.is_action_just_pressed("target_cycle"):
+	if _is_action_just_pressed_combined("target_cycle"):
 		_placement_rotation = wrapf(_placement_rotation + 90.0, 0.0, 360.0)
 		var zone_name := "inside" if _edit_zone() == "home" else "yard"
-		town_manager.local_message.emit("Placement rotation %d degrees (%s)." % [int(_placement_rotation), zone_name])
+		town_manager.local_message.emit(
+			"Placement rotation %d degrees (%s)."
+			% [int(_placement_rotation), zone_name]
+		)
 
 func _edit_zone() -> String:
 	var town_manager := _get_town_manager()
@@ -218,15 +268,23 @@ func _edit_zone() -> String:
 	if bounds.is_empty():
 		return "yard"
 	var center: Vector3 = bounds.get("center", Vector3.ZERO)
-	return "home" if global_position.distance_to(center + HOUSE_HINT_OFFSET) < 3.0 else "yard"
+	if global_position.distance_to(center + HOUSE_HINT_OFFSET) < 3.0:
+		return "home"
+	return "yard"
 
 func _ui_is_blocking() -> bool:
 	var current_scene := get_tree().get_current_scene()
 	if current_scene == null:
 		return false
-	if current_scene.has_method("is_chat_visible") and current_scene.is_chat_visible():
+	if (
+		current_scene.has_method("is_chat_visible")
+		and current_scene.is_chat_visible()
+	):
 		return true
-	if current_scene.has_method("is_inventory_visible") and current_scene.is_inventory_visible():
+	if (
+		current_scene.has_method("is_inventory_visible")
+		and current_scene.is_inventory_visible()
+	):
 		return true
 	return false
 
@@ -250,7 +308,11 @@ func _apply_camera_preset() -> void:
 	if _spring_arm_offset:
 		_spring_arm_offset.position = preset.get("offset", Vector3.ZERO)
 
-func set_identity(new_profile_id: String, new_display_name: String, new_avatar_id: String) -> void:
+func apply_identity(
+	new_profile_id: String,
+	new_display_name: String,
+	new_avatar_id: String
+) -> void:
 	profile_id = new_profile_id
 	display_name = new_display_name
 	avatar_id = new_avatar_id
@@ -260,7 +322,11 @@ func assign_plot(plot_id: int, spawn_position: Vector3) -> void:
 	assigned_plot_id = plot_id
 	set_meta("town_plot_id", plot_id)
 	var peer_id := str(name).to_int()
-	if multiplayer.has_multiplayer_peer() and multiplayer.is_server() and peer_id != multiplayer.get_unique_id():
+	if (
+		multiplayer.has_multiplayer_peer()
+		and multiplayer.is_server()
+		and peer_id != multiplayer.get_unique_id()
+	):
 		receive_plot_assignment.rpc_id(peer_id, plot_id, spawn_position)
 	else:
 		receive_plot_assignment(plot_id, spawn_position)
@@ -290,7 +356,9 @@ func find_model_meshes() -> void:
 		_limbs_head_mesh = _find_model_mesh(model_root, "Llimbs and head")
 
 func _find_model_mesh(model_root: Node, mesh_name: String) -> MeshInstance3D:
-	var direct_robot = model_root.get_node_or_null("RobotArmature/Skeleton3D/%s" % mesh_name)
+	var direct_robot = model_root.get_node_or_null(
+		"RobotArmature/Skeleton3D/%s" % mesh_name
+	)
 	if direct_robot and direct_robot is MeshInstance3D:
 		return direct_robot
 	var direct = model_root.get_node_or_null("Skeleton3D/%s" % mesh_name)
@@ -322,7 +390,9 @@ func get_texture_from_name(skin_name: SkinColor) -> CompressedTexture2D:
 		_:
 			return blue_texture
 
-func set_mesh_texture(mesh_instance: MeshInstance3D, texture: CompressedTexture2D) -> void:
+func set_mesh_texture(
+	mesh_instance: MeshInstance3D, texture: CompressedTexture2D
+) -> void:
 	if mesh_instance == null or texture == null:
 		return
 	var material := mesh_instance.get_surface_override_material(0)
@@ -341,7 +411,11 @@ func request_inventory_sync() -> void:
 
 @rpc("any_peer", "call_local", "reliable")
 func sync_inventory_to_owner(inventory_data: Dictionary) -> void:
-	if multiplayer.has_multiplayer_peer() and not multiplayer.is_server() and multiplayer.get_remote_sender_id() != 1:
+	if (
+		multiplayer.has_multiplayer_peer()
+		and not multiplayer.is_server()
+		and multiplayer.get_remote_sender_id() != 1
+	):
 		return
 	if not is_multiplayer_authority() and multiplayer.has_multiplayer_peer():
 		return
@@ -429,3 +503,26 @@ func _get_town_manager() -> TownManager:
 	if scene and scene.has_node("TownManager"):
 		return scene.get_node("TownManager") as TownManager
 	return null
+
+func set_touch_move_input(value: Vector2) -> void:
+	_touch_move_input = value.limit_length(1.0)
+
+func set_touch_action_pressed(action_name: String, pressed: bool) -> void:
+	var was_pressed := bool(_touch_pressed_actions.get(action_name, false))
+	if pressed and not was_pressed:
+		_touch_just_pressed_actions[action_name] = true
+	_touch_pressed_actions[action_name] = pressed
+
+func apply_touch_look_delta(relative: Vector2) -> void:
+	if _spring_arm_offset and _spring_arm_offset.has_method("apply_look_delta"):
+		_spring_arm_offset.apply_look_delta(relative)
+
+func _is_action_pressed_combined(action_name: String) -> bool:
+	return Input.is_action_pressed(action_name) or bool(
+		_touch_pressed_actions.get(action_name, false)
+	)
+
+func _is_action_just_pressed_combined(action_name: String) -> bool:
+	return Input.is_action_just_pressed(action_name) or bool(
+		_touch_just_pressed_actions.get(action_name, false)
+	)

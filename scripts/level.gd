@@ -14,6 +14,7 @@ var inventory_visible := false
 var game_director: GameDirector
 var town_manager: TownManager
 var town_hud: TownHUD
+var mobile_controls_hud: MobileControlsHUD
 var menu_camera: Camera3D
 var preview_character: Node3D
 var preview_rotation_speed := 0.75
@@ -23,6 +24,7 @@ const CHARACTER_SWITCHER_SCRIPT = preload("res://scripts/character_switcher.gd")
 const GAME_DIRECTOR_SCRIPT = preload("res://scripts/game_director.gd")
 const TOWN_MANAGER_SCRIPT = preload("res://scripts/town_manager.gd")
 const TOWN_HUD_SCRIPT = preload("res://scripts/town_hud.gd")
+const MOBILE_CONTROLS_HUD_SCRIPT = preload("res://scripts/mobile_controls_hud.gd")
 
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
@@ -47,10 +49,14 @@ func _ready() -> void:
 
 	game_director = _ensure_game_director()
 	game_director.state_changed.connect(_on_game_state_changed)
-	game_director.initialize_state(GameDirector.State.LOBBY if DisplayServer.get_name() != "headless" else GameDirector.State.TOWN)
+	var initial_state := GameDirector.State.LOBBY
+	if DisplayServer.get_name() == "headless":
+		initial_state = GameDirector.State.TOWN
+	game_director.initialize_state(initial_state)
 
 	town_manager = _ensure_town_manager()
 	town_hud = _ensure_town_hud()
+	mobile_controls_hud = _ensure_mobile_controls_hud()
 	town_manager.local_message.connect(_on_town_message)
 	town_manager.clock_changed.connect(_on_clock_changed)
 	town_manager.plot_text_changed.connect(_on_plot_text_changed)
@@ -91,7 +97,10 @@ func _update_preview_model(character_name: String) -> void:
 
 	var model = preview_character.get_node_or_null("CharacterModel")
 	if model and "animation_player" in model and model.animation_player:
-		model.animation_player.play("Idle" if model.animation_player.has_animation("Idle") else model.animation_player.get_animation_list()[0])
+		if model.animation_player.has_animation("Idle"):
+			model.animation_player.play("Idle")
+		else:
+			model.animation_player.play(model.animation_player.get_animation_list()[0])
 
 func _on_host_pressed(skin: String, character_name: String) -> void:
 	main_menu.hide_menu()
@@ -128,7 +137,7 @@ func _add_player(id: int, player_info: Dictionary) -> void:
 	player.position = Vector3.ZERO
 	players_container.add_child(player, true)
 
-	player.set_identity(
+	player.apply_identity(
 		str(player_info.get("profile_id", "")),
 		str(player_info.get("display_name", "Neighbor")),
 		str(player_info.get("avatar", player_info.get("character", "kyle")))
@@ -146,6 +155,9 @@ func _add_player(id: int, player_info: Dictionary) -> void:
 		_cleanup_menu_scene()
 		if town_hud:
 			town_hud.visible = true
+		if mobile_controls_hud:
+			mobile_controls_hud.bind_context(self, player)
+			mobile_controls_hud.visible = true
 		if main_menu:
 			main_menu.hide_menu()
 
@@ -159,6 +171,8 @@ func _on_server_disconnected() -> void:
 	main_menu.show_menu()
 	if town_hud:
 		town_hud.visible = false
+	if mobile_controls_hud:
+		mobile_controls_hud.visible = false
 
 func _on_chat_message_sent(message_text: String) -> void:
 	var trimmed := message_text.strip_edges()
@@ -230,6 +244,8 @@ func _unhandled_input(event) -> void:
 		main_menu.show_menu()
 		if town_hud:
 			town_hud.visible = false
+		if mobile_controls_hud:
+			mobile_controls_hud.visible = false
 
 func _ensure_game_director() -> GameDirector:
 	var existing := get_node_or_null("GameDirector")
@@ -259,24 +275,42 @@ func _ensure_town_hud() -> TownHUD:
 	hud.visible = false
 	return hud
 
+func _ensure_mobile_controls_hud() -> MobileControlsHUD:
+	var existing := get_node_or_null("MobileControlsHUD")
+	if existing:
+		return existing as MobileControlsHUD
+	var hud = MOBILE_CONTROLS_HUD_SCRIPT.new()
+	hud.name = "MobileControlsHUD"
+	add_child(hud)
+	hud.visible = false
+	return hud
+
 func _on_game_state_changed(new_state: int, _previous_state: int) -> void:
 	match new_state:
 		GameDirector.State.LOBBY:
 			main_menu.show_menu()
 			if town_hud:
 				town_hud.visible = false
+			if mobile_controls_hud:
+				mobile_controls_hud.visible = false
 			if inventory_ui:
 				inventory_ui.close_inventory()
 		GameDirector.State.TOWN:
 			main_menu.hide_menu()
 			if town_hud:
 				town_hud.visible = true
+			if mobile_controls_hud:
+				mobile_controls_hud.visible = true
 		GameDirector.State.HOME_EDIT:
 			main_menu.hide_menu()
 			if town_hud:
 				town_hud.visible = true
+			if mobile_controls_hud:
+				mobile_controls_hud.visible = true
 		GameDirector.State.FESTIVAL_ACTIVITY:
 			main_menu.hide_menu()
+			if mobile_controls_hud:
+				mobile_controls_hud.visible = true
 			_on_town_message("Festival activity ready. Legacy modes can be started explicitly.")
 		GameDirector.State.BOARD_TURN:
 			main_menu.hide_menu()

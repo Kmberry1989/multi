@@ -130,7 +130,7 @@ func register_player(player: PlayerCharacter, player_info: Dictionary) -> void:
 	var profile_id := str(player_info.get("profile_id", ""))
 	var avatar_id := str(player_info.get("avatar", player_info.get("character", "kyle")))
 
-	player.set_identity(profile_id, display_name, avatar_id)
+	player.apply_identity(profile_id, display_name, avatar_id)
 	player.set_meta("player_name", display_name)
 	player.set_meta("profile_id", profile_id)
 
@@ -360,9 +360,9 @@ func push_local_message(message: String) -> void:
 @rpc("authority", "call_local", "reliable")
 func sync_home_edit_mode(enabled: bool) -> void:
 	_local_home_edit_enabled = enabled
-	var hint := "J interact  K edit/place  L garden  Q emote  B inventory  Ctrl chat"
+	var hint := "Touch HUD: move left, drag right to look, tap buttons to interact"
 	if enabled:
-		hint = "Home edit: J pickup  K place/move  T rotate  Q emote  B inventory"
+		hint = "Home edit: Use picks up, Edit places, Rotate turns furniture"
 	local_message.emit("Home edit mode %s" % ("enabled" if enabled else "disabled"))
 	_emit_local_plot_text()
 	clock_changed.emit(town_state.day, town_state.minute_of_day)
