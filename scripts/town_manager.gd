@@ -6,7 +6,7 @@ const CHECKPOINT_INTERVAL := 8.0
 const CLOCK_STEP_SECONDS := 1.0
 const CLOCK_STEP_MINUTES := 10
 const PLOT_SIZE := Vector2(10.0, 10.0)
-const PLOT_CENTERS := [
+const PLOT_CENTERS: Array[Vector3] = [
 	Vector3(-14.0, 0.0, -14.0),
 	Vector3(14.0, 0.0, -14.0),
 	Vector3(-14.0, 0.0, 14.0),
@@ -90,7 +90,7 @@ func _ensure_default_state() -> void:
 			plot_state.center = PLOT_CENTERS[i]
 			plot_state.size = PLOT_SIZE
 			var home_state := HomeState.new()
-			var house_origin := PLOT_CENTERS[i] + HOUSE_OFFSET
+			var house_origin: Vector3 = PLOT_CENTERS[i] + HOUSE_OFFSET
 			home_state.door_position = house_origin + Vector3(0.0, 0.0, 2.0)
 			home_state.interior_origin = house_origin + Vector3(0.0, 0.0, 1.0)
 			plot_state.home = home_state.to_dict()
@@ -435,7 +435,7 @@ func request_interact() -> void:
 			_send_message_to_peer(peer_id, "Town square activity complete. Say hi to your neighbors.")
 
 @rpc("any_peer", "reliable")
-func request_place_furniture(item_id: String, target_position: Vector3, rotation_degrees: float, zone: String = "yard") -> void:
+func request_place_furniture(item_id: String, target_position: Vector3, p_rotation_degrees: float, zone: String = "yard") -> void:
 	if multiplayer.has_multiplayer_peer() and not multiplayer.is_server():
 		return
 	var peer_id := multiplayer.get_remote_sender_id() if multiplayer.has_multiplayer_peer() else 1
@@ -458,8 +458,8 @@ func request_place_furniture(item_id: String, target_position: Vector3, rotation
 	var plot_id := _get_plot_id_for_profile(profile_id)
 	if plot_id == -1:
 		return
-	var snapped := get_snap_position_for_player(profile_id, target_position, Vector3.ZERO if target_position == Vector3.ZERO else target_position - player.global_position, zone)
-	if not _can_place_object(plot_id, snapped, "", zone):
+	var snapped_pos := get_snap_position_for_player(profile_id, target_position, Vector3.ZERO if target_position == Vector3.ZERO else target_position - player.global_position, zone)
+	if not _can_place_object(plot_id, snapped_pos, "", zone):
 		_send_message_to_peer(peer_id, "That spot is blocked.")
 		return
 	if player.get_inventory().remove_item(item_id, 1) <= 0:
@@ -471,8 +471,8 @@ func request_place_furniture(item_id: String, target_position: Vector3, rotation
 	object_state.owner_profile_id = profile_id
 	object_state.plot_id = plot_id
 	object_state.zone = zone
-	object_state.position = snapped
-	object_state.rotation_degrees = rotation_degrees
+	object_state.position = snapped_pos
+	object_state.rotation_degrees = p_rotation_degrees
 	object_state.footprint = _get_item_footprint(item_id)
 	_add_object_to_plot(plot_id, object_state.to_dict())
 	player.push_inventory_to_owner()
@@ -481,7 +481,7 @@ func request_place_furniture(item_id: String, target_position: Vector3, rotation
 	_broadcast_town_state()
 
 @rpc("any_peer", "reliable")
-func request_move_furniture(object_id: String, target_position: Vector3, rotation_degrees: float, zone: String = "yard") -> void:
+func request_move_furniture(object_id: String, target_position: Vector3, p_rotation_degrees: float, zone: String = "yard") -> void:
 	if multiplayer.has_multiplayer_peer() and not multiplayer.is_server():
 		return
 	var peer_id := multiplayer.get_remote_sender_id() if multiplayer.has_multiplayer_peer() else 1
@@ -501,12 +501,12 @@ func request_move_furniture(object_id: String, target_position: Vector3, rotatio
 				continue
 			if str(object_dict.get("owner_profile_id", "")) != profile_id:
 				return
-			var snapped := get_snap_position_for_player(profile_id, target_position, target_position - player.global_position, zone)
-			if not _can_place_object(plot_id, snapped, object_id, zone):
+			var snapped_pos := get_snap_position_for_player(profile_id, target_position, target_position - player.global_position, zone)
+			if not _can_place_object(plot_id, snapped_pos, object_id, zone):
 				_send_message_to_peer(peer_id, "That spot is blocked.")
 				return
-			object_dict["position"] = [snapped.x, snapped.y, snapped.z]
-			object_dict["rotation_degrees"] = rotation_degrees
+			object_dict["position"] = [snapped_pos.x, snapped_pos.y, snapped_pos.z]
+			object_dict["rotation_degrees"] = p_rotation_degrees
 			object_dict["zone"] = zone
 			objects[j] = object_dict
 			plot_dict["placed_objects"] = objects
@@ -567,8 +567,8 @@ func request_plant_seed(seed_item_id: String, target_position: Vector3) -> void:
 	var item := ItemDatabase.get_item(seed_item_id)
 	if item == null or item.item_type != Item.ItemType.SEED:
 		return
-	var snapped := get_snap_position_for_player(profile_id, target_position, target_position - player.global_position, "yard")
-	if _find_crop_at(plot_id, snapped) != "":
+	var snapped_pos := get_snap_position_for_player(profile_id, target_position, target_position - player.global_position, "yard")
+	if _find_crop_at(plot_id, snapped_pos) != "":
 		_send_message_to_peer(peer_id, "There is already a crop planted there.")
 		return
 	if player.get_inventory().remove_item(seed_item_id, 1) <= 0:
@@ -578,7 +578,7 @@ func request_plant_seed(seed_item_id: String, target_position: Vector3) -> void:
 	crop_state.crop_id = "%s_%s" % [seed_item_id, Time.get_ticks_usec()]
 	crop_state.crop_type = _get_crop_product(seed_item_id)
 	crop_state.plot_id = plot_id
-	crop_state.position = snapped
+	crop_state.position = snapped_pos
 	crop_state.planted_day = town_state.day
 	crop_state.planted_minute = town_state.minute_of_day
 	crop_state.last_watered_day = town_state.day
@@ -1021,7 +1021,7 @@ func _build_npcs() -> void:
 		var body := MeshInstance3D.new()
 		var body_mesh := CapsuleMesh.new()
 		body_mesh.radius = 0.4
-		body_mesh.mid_height = 1.0
+		body_mesh.height = 1.8
 		body.mesh = body_mesh
 		body.position = Vector3(0.0, 1.0, 0.0)
 		var material := StandardMaterial3D.new()
@@ -1036,7 +1036,7 @@ func _build_npcs() -> void:
 		npc_root.add_child(label)
 
 func _npc_position(npc_dict: Dictionary) -> Vector3:
-	var hour := int(town_state.minute_of_day / 60) % 24
+	var hour := int(town_state.minute_of_day / 60.0) % 24
 	var start_hour := int(npc_dict.get("active_start_hour", 8))
 	var end_hour := int(npc_dict.get("active_end_hour", 18))
 	if hour >= start_hour and hour < end_hour:
@@ -1051,7 +1051,7 @@ func _get_plot_label_text(plot_dict: Dictionary) -> String:
 	var owner_name := str(profile_dict.get("display_name", "Neighbor"))
 	return "%s's Plot" % owner_name
 
-func _can_place_object(plot_id: int, position: Vector3, ignore_object_id: String, zone: String) -> bool:
+func _can_place_object(plot_id: int, p_position: Vector3, ignore_object_id: String, zone: String) -> bool:
 	var plot_dict := _get_plot_dict(plot_id)
 	if plot_dict.is_empty():
 		return false
@@ -1061,17 +1061,17 @@ func _can_place_object(plot_id: int, position: Vector3, ignore_object_id: String
 		if str(object_dict.get("zone", "yard")) != zone:
 			continue
 		var object_pos := _vector3_from_array(object_dict.get("position", [0.0, 0.0, 0.0]))
-		if object_pos.distance_to(position) < 1.4:
+		if object_pos.distance_to(p_position) < 1.4:
 			return false
-	if _find_crop_at(plot_id, position) != "":
+	if _find_crop_at(plot_id, p_position) != "":
 		return false
 	return true
 
-func _find_crop_at(plot_id: int, position: Vector3) -> String:
+func _find_crop_at(plot_id: int, p_position: Vector3) -> String:
 	var plot_dict := _get_plot_dict(plot_id)
 	for crop_dict in plot_dict.get("crops", []):
 		var crop_pos := _vector3_from_array(crop_dict.get("position", [0.0, 0.0, 0.0]))
-		if crop_pos.distance_to(position) < 0.6:
+		if crop_pos.distance_to(p_position) < 0.6:
 			return str(crop_dict.get("crop_id", ""))
 	return ""
 
